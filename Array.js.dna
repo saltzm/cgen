@@ -1,0 +1,99 @@
+
+
+MemNew = function (type, size) {
+./+ malloc(sizeof(@{type}) * @{size});
+}
+
+// TODO: Have name just be a field in the object
+// TODO: Standardize templated type names, e.g. Array__Int_Foo_OtherThing__Create
+
+ArrayT = {
+  name: "Array", 
+  name_fn: function(T) { return capitalize(T)  + "Array" },
+}
+
+ArrayT.template  = function(ElementType, elements_are_objects) { 
+  var ElementClass = ""
+
+  var ClassName = ArrayT.name_fn(ElementType)
+  if (elements_are_objects) {
+      ElementClass = ElementType
+      ElementType = mt.Ptr(ElementType)
+  }
+
+  console.log(ClassName + "her")
+
+  return { 
+    name: ClassName,
+    metadata: {
+      project_deps: [],
+      external_deps: ["assert", "stdlib", "stdio"],
+      external_libs: [] 
+    },
+  
+    struct: {
+      // Size of the array
+      size: t.Size,
+      // Elements of the array
+      data: mt.Ptr(ElementType)
+    },
+  
+    constructor: {
+      inp: { size: t.Size, init_value: ElementType },
+      def: () => {
+.       self->size = size;
+.       self->data = @{MemNew(ElementType, "size")};
+.       assert(self->data);
+.       for (int i = 0; i < self->size; ++i){
+.         self->data[i] = init_value;
+.       }
+      }
+    },
+
+    destructor: () => {
+      if (elements_are_objects) {
+.       for (int i = 0; i < self->size; ++i) {
+.         @{ElementClass}_Destroy(&(self->data[i]));
+.       }
+      }
+.     free(self->data);
+    },
+
+    api: {
+      GetSize: {
+        inp: {},
+        out: t.Size, 
+        def: () => {
+.         return self->size;
+        }
+      },
+      Get: {
+        inp: { idx: t.Int },
+        out: ElementType,
+        def: () => {
+.         assert(idx < self->size);
+.         return self->data[idx];
+        }
+      }, 
+
+      Set: {
+        inp: { idx: t.Int, new_value: ElementType },
+        out: t.Nothing,
+        def: () => {
+.         assert(idx >= 0);
+.         assert(idx < self->size);
+  
+        if (elements_are_objects) {
+.         if (self->data[idx]) {
+.             @{ElementClass}_Destroy(&(self->data[idx]));
+.         }
+        }
+.         self->data[idx] = new_value;
+        }
+      }
+    },
+    tests: {}
+  }
+}
+
+defineMetaClass(ArrayT)

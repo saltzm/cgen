@@ -1,0 +1,87 @@
+IntArrayT = mc.Array(t.Int)
+
+IntArrayT.tests = {
+    "Create followed by GetSize returns correct size": () => {
+.      size_t size = 4;
+.      int init_value = 1;
+.      IntArray* arr = IntArray_Create(size, init_value);
+.      assert(IntArray_GetSize(arr) == size);
+    },
+    "All elements initialized to the correct value": () => {
+.      size_t size = 4;
+.      int init_value = 1;
+.      IntArray* arr = IntArray_Create(size, init_value);
+.      for (int i = 0; i < IntArray_GetSize(arr); ++i) {
+.        assert(IntArray_Get(arr, i) == init_value);
+.      }
+    },
+    "Set element at index correctly changes the value": () => {
+.      size_t size = 4;
+.      int init_value = 1;
+.      IntArray* arr = IntArray_Create(size, init_value);
+.      IntArray_Set(arr, 0, 5);
+.      assert(IntArray_Get(arr, 0) == 5);
+    }
+};
+
+defineClass(IntArrayT)
+
+defineClass(mc.Array(t.Double))
+
+defineClass({
+    name: "TestObj",
+    metadata: {
+        project_deps: [],
+        external_deps: ["assert", "stdlib", "stdio"],
+        external_libs: [] 
+    },
+    struct: {
+        val: mt.Ptr(t.Int)
+    },
+    constructor: {
+        inp: { val: mt.Ptr(t.Int) },
+        def: () => {
+.           self->val = val;
+        }
+    },
+    destructor: () => {
+.        *(self->val) = 0;
+    },
+    api: {},
+    tests: {}
+})
+
+TestObjArrayT = mc.Array(t.TestObj, true)
+TestObjArrayT.metadata.project_deps = [t.TestObj, t.IntArray]
+TestObjArrayT.tests = {
+    "Overwriting an element of the array destroys it": () => {
+.      size_t size = 1;
+.      TestObj* init_value = NULL;
+.      TestObjArray* arr = TestObjArray_Create(size, init_value);
+.      int val = 2;
+.      int val2 = 3;
+.      TestObj* orig = TestObj_Create(&val);
+.      TestObj* new = TestObj_Create(&val2);
+.      TestObjArray_Set(arr, 0, orig);
+.      TestObjArray_Set(arr, 0, new);
+.      assert(val == 0);
+.      TestObjArray_Destroy(&arr);
+    },
+    "Destroying the array destroys all elements": () => {
+       array_size = 3;
+.      size_t size = @{array_size};
+.      TestObj* init_value = NULL;
+.      TestObjArray* arr = TestObjArray_Create(size, init_value);
+       for (var i = 0; i < array_size; ++i) { 
+.        int val@{i} = 2;
+.        TestObj* ele@{i} = TestObj_Create(&val@{i});
+.        TestObjArray_Set(arr, @{i}, ele@{i});
+       }
+.      TestObjArray_Destroy(&arr);
+       for (var i = 0; i < array_size; ++i) { 
+.        assert(val@{i} == 0);
+       }
+    }, 
+};
+
+defineClass(TestObjArrayT)
