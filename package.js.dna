@@ -3,3 +3,4 @@
 ./!include("Array.js.dna")
 ./!include("PrimArrays.js.dna")
 ./!include("ArrayList.js.dna")
+./!include("WithStatus.js.dna")

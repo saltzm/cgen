@@ -52,7 +52,7 @@ defineClass({
 })
 
 TestObjArrayT = mc.Array(t.TestObj, true)
-TestObjArrayT.metadata.project_deps = [t.TestObj, t.IntArray]
+TestObjArrayT.metadata.project_deps = [t.TestObj]
 TestObjArrayT.tests = {
     "Overwriting an element of the array destroys it": () => {
 .      size_t size = 1;

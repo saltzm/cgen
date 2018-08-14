@@ -36,6 +36,11 @@ defineClass = function(class_body) {
     var full_func_name = class_name + "_" + func_name
 
     var func_args = { self: mt.Ptr(t[class_name]) }
+    var required_func_fields = ["inp", "out", "def"]
+    required_func_fields.forEach((field_name) => {
+      assert(func_props.hasOwnProperty(field_name), 
+        "Function " + full_func_name + " must contain a " + field_name + " field.");
+    });
 
     Object.entries(func_props.inp).forEach(([arg_name, arg_type]) => {
       func_args[arg_name] = arg_type
@@ -48,7 +53,11 @@ defineClass = function(class_body) {
   })
   console.log("4 " + class_name)
 
-  ctor = {}//class_body.constructor
+  assert(class_body.constructor.hasOwnProperty("def"), "Class " + class_name +
+    " must define a body for its constructor")
+
+
+  ctor = {}
   ctor.module = class_name
   ctor.inp = class_body.constructor.inp
   ctor.out = mt.Ptr(t[class_name])
@@ -56,7 +65,9 @@ defineClass = function(class_body) {
     console.log("5 " + class_name)
 .   @{mt.Ptr(t[class_name])} self = malloc(sizeof(@{t[class_name]}));
 .   assert(self);
+if (class_body.constructor.def) {
 .   @{class_body.constructor.def()}
+}
 .   return self;
   }
 

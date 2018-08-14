@@ -157,17 +157,18 @@ Object.entries(modules).forEach(([module_name, props]) => {
         props.project_deps.forEach(function(dep) {
 ./+ @{dep}.o
     });
-.    gcc -g -o build/@{module_name} src/@{module_name}.c
+.    gcc -g -Werror -o build/@{module_name} src/@{module_name}.c
+    props.project_deps.forEach(function(dep) {
+./+ build/@{dep}.o
+    });
+
     } else {
 .@{module_name}.o:
         props.project_deps.forEach(function(dep) {
 ./+ @{dep}.o
         });
-.    gcc -g -c -o build/@{module_name}.o src/@{module_name}.c
+.    gcc -g -Werror -c -o build/@{module_name}.o src/@{module_name}.c
     }
-    props.project_deps.forEach(function(dep) {
-./+ build/@{dep}.o
-    });
 })
 .
 .clean:
