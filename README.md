@@ -37,7 +37,7 @@ Key entities:
   function, with the module object specifying the name of the function to be
   used as the entry point in the case where the module is executable. This
   probably makes more sense.
-* enum: 
+* enum: Declares/defines an enum
   * name: The name of the enum
   * module: The module the enum belongs to
   * visibility: 'public'/'private'
