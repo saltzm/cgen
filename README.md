@@ -239,7 +239,7 @@ defineFunction({
 })
 ```
 
-But what if we got even FANCIER!? We can pass in the body of the test as a function.
+But what if we got even FANCIER!? We can pass in the body of the test as a function. I'm not even arguing that this is the best way to do anything, but it's so plastic and fun it makes me happy to play with:
 ```c
 var defineIntArrayTest(size, initVal, testBody) {
 .  @{setUpIntArrayTest(size, initVal)}
@@ -281,3 +281,13 @@ defineFunction({
   }
 })
 ```
+Then define a file `package.js.dna` as follows: 
+```
+./!include("IntArray.js.dna")
+```
+and run 
+```
+node ribosome.js cgen.js.dna
+```
+
+What do we get as a result? A header and implementation file for each module, and a makefile with targets to build everything and run the tests. The makefile generation currently is pretty rudimentary but it works.
