@@ -141,6 +141,19 @@ defineFunction({
   }
 })
 
+// Gets the size of the array
+defineFunction({
+  name: "IntArray_GetSize",
+  module: "IntArray",
+  visibility: "public",
+  compiler_directives: ["inline"],
+  inp: { self: mt.Ptr(IntArray) },
+  out: t.Size, 
+  def: () => {
+.    return self->size;
+  }
+})
+
 // Gets the value at an index of the array
 defineFunction({
   name: "IntArray_Get",
@@ -168,4 +181,57 @@ defineFunction({
 .    self->data[idx] = val;
   }
 })
+```
+
+And perhaps a test:
+```c
+defineModule({
+  name: "IntArrayTest",
+  executable: false,
+  project_deps: ["IntArray"], // Need to include *and* link to IntArray
+  external_deps: ["assert", "stdio", "stdlib"],
+  external_libs: []
+})
+
+// Let's get fancy and define a macro for setting up a test
+var setUpIntArrayTest = function(size, init_val) {
+.  size_t size = @{size};
+.  int init_val = @{init_val};
+.  IntArray* arr = IntArray_Create(size, init_val);
+}
+
+// This isn't that useful but let's do it for fun anyways
+var tearDownIntArrayTest = function() {
+.  IntArray_Destroy(&arr);
+}
+
+defineFunction({
+  name: "RunTests",
+  module: "IntArray",
+  visibility: "private",
+  inp: {},
+  out: t.Nothing, 
+  def: () => {
+.   // Test that IntArray_Create creates an array with the correct size
+.   {
+.     size_t size = 3;
+.     int init_val = 0;
+.     IntArray* arr = IntArray_Create(size, init_val);
+.     assert(IntArray_GetSize(arr) == size);
+.     IntArray_Destroy(&arr);
+.   }
+.   // Test that IntArray_Create correctly initializes all values
+.   {
+.     // Let's use the macro now
+.     @{setUpIntArrayTest(3, 0)}
+.     for (size_t i = 0; i < IntArray_GetSize(arr); ++i) {
+.       assert(IntArray_Get(arr, i) == 0);
+.     }
+.     // Yay more macros
+.     @(tearDownIntArrayTest())
+   }
+  }
+})
+
+// And what if we got even FANCIER!?
 ```
