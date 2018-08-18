@@ -187,10 +187,15 @@ And perhaps a test:
 ```c
 defineModule({
   name: "IntArrayTest",
-  executable: false,
+  executable: true, // This should be executable, yay. See entry point below.
   project_deps: ["IntArray"], // Need to include *and* link to IntArray
   external_deps: ["assert", "stdio", "stdlib"],
   external_libs: []
+})
+
+defineEntryPoint({
+  name: "RunTests",
+  module: "IntArrayTest"
 })
 
 // Let's get fancy and define a macro for setting up a test
@@ -231,11 +236,6 @@ defineFunction({
 .     @{tearDownIntArrayTest()}
    }
   }
-})
-
-defineEntryPoint({
-  name: "RunTests",
-  module: "IntArrayTest"
 })
 ```
 
