@@ -358,5 +358,14 @@ defineClass({
       }
     }
   },
+  tests: {
+    "IntArray_Create creates an array with the correct size": {
+.     size_t size = 3;
+.     int init_val = 0;
+.     IntArray* arr = IntArray_Create(size, init_val);
+.     assert(IntArray_GetSize(arr) == size);
+.     IntArray_Destroy(&arr);
+    }
+  }
 })
 ```
