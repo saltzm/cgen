@@ -76,6 +76,11 @@ defineType({
   alias: "Size"
 })
 
+defineType({
+  ctype: "void",
+  alias: "Nothing"
+})
+
 defineMetatype({
   name: "Ptr",
   func: function(T) { return T + "* "; }
@@ -109,7 +114,7 @@ defineFunction({
   out: mt.Ptr(t.IntArray), // Structs automatically get their own type
   def: () => {
 .    IntArray *self = malloc(sizeof(IntArray));
-.   assert(self);
+.    assert(self);
 .    self->size = size;
 .    self->data = malloc(self->size * sizeof(int));
 .    assert(self->data);
@@ -118,5 +123,49 @@ defineFunction({
 .    }
 .    return self;
 .  }
+})
+
+defineFunction({
+  name: "IntArray_Destroy",
+  module: "IntArray",
+  visibility: "public",
+  inp: { self_ptr: mt.Ptr(mt.Ptr(IntArray)) },
+  out: t.Nothing, // Structs automatically get their own type
+  def: () => {
+.    assert(self_ptr);
+.    assert(*self_ptr);
+.    IntArray *self = *self_ptr;
+.    free(self->data);
+.    free(self);
+.    *self_ptr = NULL;
+  }
+})
+
+// Gets the value at an index of the array
+defineFunction({
+  name: "IntArray_Get",
+  module: "IntArray",
+  visibility: "public",
+  compiler_directives: ["inline"],
+  inp: { self: mt.Ptr(IntArray), idx: t.Size },
+  out: t.Int, 
+  def: () => {
+.    assert(idx < self->size);
+.    return self->data[idx];
+  }
+})
+
+// Sets the value at an index of the array
+defineFunction({
+  name: "IntArray_Set",
+  module: "IntArray",
+  visibility: "public",
+  compiler_directives: ["inline"],
+  inp: { self: mt.Ptr(IntArray), idx: t.Size, val : t.Int },
+  out: t.Int, 
+  def: () => {
+.    assert(idx < self->size);
+.    self->data[idx] = val;
+  }
 })
 ```
