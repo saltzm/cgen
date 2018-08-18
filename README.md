@@ -291,3 +291,72 @@ node ribosome.js cgen.js.dna
 ```
 
 What do we get as a result? A header and implementation file for each module, and a makefile with targets to build everything and run the tests. The makefile generation currently is pretty rudimentary but it works.
+
+The beauty of having a program represented as a bunch of JSON objects is that it's really easy to build higher and higher level abstractions. For example, it's easy to recreate the above IntArray class in the following (less verbose) way:
+```c
+defineClass({
+  name: "IntArray", // This will define a module called IntArray for us
+  struct: { // This will be called IntArray and will be private
+    // The size of the array
+    size: t.Size,
+    // The data in the array
+    data: mt.Ptr(t.Int);
+  },
+  module: {
+    project_deps: [],
+    external_deps: ["assert", "stdio", "stdlib"],
+    external_libs: []
+  },
+  api: {
+    Create: {
+      inp: { size: t.Size, init_value: t.Int },
+      out: mt.Ptr(t.IntArray),
+      def: () => {
+.       IntArray *self = malloc(sizeof(IntArray));
+.       assert(self);
+.       self->size = size;
+.       self->data = malloc(self->size * sizeof(int));
+.       assert(self->data);
+.       for (size_t i = 0; i < self->size; ++i) {
+.         self->data[i] = init_value;
+.       }
+.       return self;
+      }
+    },
+    Destroy: {
+      inp: { self_ptr: mt.Ptr(mt.Ptr(IntArray)) },
+      out: t.Nothing, // Structs automatically get their own type
+      def: () => {
+.       assert(self_ptr);
+.       assert(*self_ptr);
+.       IntArray *self = *self_ptr;
+.       free(self->data);
+.       free(self);
+.       *self_ptr = NULL;
+      }
+    },
+    GetSize: {
+      inp: { self: mt.Ptr(t.IntArray) },
+      out: t.Size,
+      def: () => {
+.       return self->size;
+      }
+    },
+    Get: {
+      inp: { self: mt.Ptr(t.IntArray), idx: t.Size },
+      out: t.Int, 
+      def: () => {
+.       assert(idx < self->size);
+.       return self->data[idx];
+    },
+    Set: {
+      inp: { self: mt.Ptr(IntArray), idx: t.Size, val: t.Int },
+      out: t.Int, 
+      def: () => {
+.       assert(idx < self->size);
+.       self->data[idx] = val;
+      }
+    }
+  },
+})
+```
