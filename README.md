@@ -50,14 +50,72 @@ Key entities:
   currently does **not** define a typedef in C.
   * ctype: The corresponding C type for the alias
   * alias: The alias for the type
-* **metatype**: 
-  * A javascript function that takes in a type (which is just a string) and outputs
+* **metatype**: A javascript function that takes in a type (which is just a string) and outputs
     a new type string. When defined, the metatype will be accessible from
     anywhere as mt.MyMetatype(t.SomeOtherType). An easy example of this would
     be mt.Ptr(t.Int) as a pointer to an int. It would expand to "int \*". 
     Unions could also be defined this way.
+  * name: The name of the metatype
+  * func: Function from type to metatype name
 * **constant**: A free-floating key-value pair to define as a constant.
   * name: The name of the constant
   * module: The module the constant belongs to
   * visibility: 'public'/'private'
   * value: The value of the constant.
+
+Example of the use of the raw interface to implement a basic array class for integers:
+
+```
+defineType({
+  ctype: "int",
+  alias: "Int"
+})
+
+defineType({
+  ctype: "size_t",
+  alias: "Size"
+})
+
+defineMetatype({
+  name: "Ptr",
+  func: function(T) { return T + "* "; }
+})
+
+defineModule({
+  name: "IntArray",
+  executable: false,
+  project_deps: [],
+  external_deps: ["assert", "stdio", "stdlib"]
+})
+
+defineStruct({
+  name: "IntArray",
+  module: "IntArray",
+  visibility: "private",
+  data: {
+    // The size of the array
+    size: t.Size,
+    // The data in the array
+    data: mt.Ptr(t.Int);
+  }
+})
+
+defineFunction({
+  name: "IntArray_Create",
+  module: "IntArray",
+  visibility: "public",
+  inp: { size: t.Size, init_value: t.Int },
+  out: mt.Ptr(t.IntArray), // Structs automatically get their own type
+  def: () => {
+    IntArray *self = malloc(sizeof(IntArray));
+    assert(self);
+    self->size = size;
+    self->data = malloc(self->size * sizeof(int));
+    assert(self->data);
+    for (size_t i = 0; i < self->size; ++i) {
+      self->data[i] = init_value;
+    }
+    return self;
+  }
+})
+```
