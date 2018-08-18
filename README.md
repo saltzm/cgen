@@ -194,9 +194,9 @@ defineModule({
 })
 
 // Let's get fancy and define a macro for setting up a test
-var setUpIntArrayTest = function(size, init_val) {
+var setUpIntArrayTest = function(size, initVal) {
 .  size_t size = @{size};
-.  int init_val = @{init_val};
+.  int init_val = @{initVal};
 .  IntArray* arr = IntArray_Create(size, init_val);
 }
 
@@ -228,10 +228,56 @@ defineFunction({
 .       assert(IntArray_Get(arr, i) == 0);
 .     }
 .     // Yay more macros
-.     @(tearDownIntArrayTest())
+.     @{tearDownIntArrayTest()}
    }
   }
 })
 
-// And what if we got even FANCIER!?
+defineEntryPoint({
+  name: "RunTests",
+  module: "IntArrayTest"
+})
+```
+
+But what if we got even FANCIER!? We can pass in the body of the test as a function.
+```c
+var defineIntArrayTest(size, initVal, testBody) {
+.  @{setUpIntArrayTest(size, initVal)}
+.  @{testBody()}
+.  @{tearDownIntArrayTest()}
+}
+
+var testThatCreateCreatesAnArrayOfTheCorrectSize = {
+  array_size: 3,
+  init_val: 0,
+  body: () => {
+.   assert(IntArray_Size(arr, idx) == val);
+  }
+}
+
+var testThatSetCorrectlySetsTheValueAtTheRightIndex = {
+  array_size: 3,
+  init_val: 0,
+  body: () => {
+.   size_t idx = 0;
+.   int val = 3;
+.   IntArray_Set(arr, idx, val);
+.   assert(IntArray_Get(arr, idx) == val);
+  }
+}
+
+var tests = [testThatCreateCreatesAnArrayOfTheCorrectSize, testThatSetCorrectlySetsTheValueAtTheRightIndex]
+
+defineFunction({
+  name: "RunTests",
+  module: "IntArray",
+  visibility: "private",
+  inp: {},
+  out: t.Nothing, 
+  def: () => {
+    for (test in tests) {
+.     @{defineIntArrayTest(test.array_size, test.init_val, test.body)} 
+    }
+  }
+})
 ```
