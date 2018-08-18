@@ -130,7 +130,7 @@ defineFunction({
   module: "IntArray",
   visibility: "public",
   inp: { self_ptr: mt.Ptr(mt.Ptr(IntArray)) },
-  out: t.Nothing, // Structs automatically get their own type
+  out: t.Nothing,
   def: () => {
 .    assert(self_ptr);
 .    assert(*self_ptr);
@@ -364,6 +364,15 @@ defineClass({
 .     int init_val = 0;
 .     IntArray* arr = IntArray_Create(size, init_val);
 .     assert(IntArray_GetSize(arr) == size);
+.     IntArray_Destroy(&arr);
+    },
+    "IntArray_Create correctly initializes all values": {
+.     size_t size = 3;
+.     int init_val = 0;
+.     IntArray* arr = IntArray_Create(size, init_val);
+.     for (size_t i = 0; i < IntArray_GetSize(arr); ++i) {
+.       assert(IntArray_Get(arr, i) == 0);
+.     }
 .     IntArray_Destroy(&arr);
     }
   }
