@@ -241,7 +241,7 @@ defineFunction({
 
 But what if we got even FANCIER!? We can pass in the body of the test as a function. I'm not even arguing that this is the best way to do anything, but it's so plastic and fun it makes me happy to play with:
 ```c
-var defineIntArrayTest(size, initVal, testBody) {
+function defineIntArrayTest(size, initVal, testBody) {
 .  @{setUpIntArrayTest(size, initVal)}
 .  @{testBody()}
 .  @{tearDownIntArrayTest()}
