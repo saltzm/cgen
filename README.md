@@ -380,6 +380,6 @@ defineClass({
 ```
 This generates the files IntArray.h/c, IntArrayTest.h/c, and a makefile with a target for building all modules and a target for running the tests.
 
-What I find really cool is that to build the raw interface took only about 200 lines of javascript (with the help of ribosome), and then building a layer on top of it (completely separate!) to implement the above class abstraction, plus templated types ("metaclasses") only took an extra 100 or so lines of javascript! 
+What I find really cool is that to build the raw interface took only about 200 lines of javascript (with the help of ribosome), and then building a layer on top of it (completely separate!) to implement the above class abstraction, plus templated classes only took an extra 100 or so lines of javascript! 
 
 If I wanted to implement a way to enforce inheriting interfaces described by a JSON object (I don't, yet), it would probably only be an additional 50 lines or so. Inheritance of fields in a struct, or actual function definitions? Easy. Want to do make all of your classes add a reference count to their struct and have their destructors always check the reference count before actually freeing memory? Easy.
