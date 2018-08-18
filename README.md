@@ -65,7 +65,7 @@ Key entities:
 
 Example of the use of the raw interface to implement a basic array class for integers:
 
-```
+```c
 defineType({
   ctype: "int",
   alias: "Int"
@@ -85,7 +85,8 @@ defineModule({
   name: "IntArray",
   executable: false,
   project_deps: [],
-  external_deps: ["assert", "stdio", "stdlib"]
+  external_deps: ["assert", "stdio", "stdlib"],
+  external_libs: []
 })
 
 defineStruct({
@@ -107,15 +108,15 @@ defineFunction({
   inp: { size: t.Size, init_value: t.Int },
   out: mt.Ptr(t.IntArray), // Structs automatically get their own type
   def: () => {
-    IntArray *self = malloc(sizeof(IntArray));
-    assert(self);
-    self->size = size;
-    self->data = malloc(self->size * sizeof(int));
-    assert(self->data);
-    for (size_t i = 0; i < self->size; ++i) {
-      self->data[i] = init_value;
-    }
-    return self;
-  }
+.    IntArray *self = malloc(sizeof(IntArray));
+.   assert(self);
+.    self->size = size;
+.    self->data = malloc(self->size * sizeof(int));
+.    assert(self->data);
+.    for (size_t i = 0; i < self->size; ++i) {
+.      self->data[i] = init_value;
+.    }
+.    return self;
+.  }
 })
 ```
