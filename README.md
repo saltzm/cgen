@@ -122,7 +122,7 @@ defineFunction({
 .      self->data[i] = init_value;
 .    }
 .    return self;
-.  }
+   }
 })
 
 defineFunction({
