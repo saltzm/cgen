@@ -20,10 +20,12 @@ Key entities:
       in the .c file
     * 'private': Declares and defines the function in the .c file and marks it
       'static'
+  * compiler_directives: A list of things like "inline" to precede the function signature, static should never be necessary though
   * inp: Object of the form { argName : argType, ..., lastArgName : lastArgType }
   * out: Specifies the return type of the function
   * def: Contains the body of the function in ribosome format
 * **struct**:
+  * name: The name of the struct
   * module: The module the struct belongs to
   * visibility:
     * 'public': Declares the struct in the .h file for the module. Also defines
@@ -33,10 +35,10 @@ Key entities:
   * data:
     * Object of the form { fieldName : fieldType, ..., lastFieldName : lastFieldType }
 * **entry point** (TBD): A function to be called directly from main(). This is required
-  for a module that's executable. This could change to be a normal private
-  function, with the module object specifying the name of the function to be
-  used as the entry point in the case where the module is executable. This
-  probably makes more sense.
+  for a module that's executable. The function currently must accept no arguments and return void but 
+  later on should accept command line arguments and return an int.
+  * name: The name of the function (should be defined elsewhere separately).
+  * module: The module for which this function is an entry point. This module definition must have specified "executable: true".
 * **enum**: Declares/defines an enum
   * name: The name of the enum
   * module: The module the enum belongs to
@@ -44,18 +46,18 @@ Key entities:
   * entries: An object of the format { name : value, ... } for each enum entry. Also
              accepts a list of names if the default values may be used.
 * **type**: An alias in javascript for a type in C. When a type is defined with
-  defineType, the type will be accessible from anywhere as 't.MyAlias'
+  defineType, the type will be accessible from anywhere as 't.MyAlias'. This 
+  currently does **not** define a typedef in C.
   * ctype: The corresponding C type for the alias
   * alias: The alias for the type
 * **metatype**: 
   * A javascript function that takes in a type (which is just a string) and outputs
     a new type string. When defined, the metatype will be accessible from
     anywhere as mt.MyMetatype(t.SomeOtherType). An easy example of this would
-    be mt.Ptr(t.Int) as a pointer to an int. It would expand to "int \*". Enums and 
-    Unions could also be defined this way (and may be in the future).
+    be mt.Ptr(t.Int) as a pointer to an int. It would expand to "int \*". 
+    Unions could also be defined this way.
 * **constant**: A free-floating key-value pair to define as a constant.
   * name: The name of the constant
   * module: The module the constant belongs to
   * visibility: 'public'/'private'
   * value: The value of the constant.
-
