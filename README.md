@@ -5,6 +5,7 @@ At its simplest, cgen is a tool that lets you write C code mixed with metaprogra
 At its finest, cgen is a tool that lets you build higher and higher level abstractions for code generation to help you write C code with less and less effort. 
 
 [Jump to examples](#tutorial)
+[Jump to the cooler example](#building-a-class-abstraction)
 
 # Why?
 I've been writing almost exclusively in C++ for work since 2015. Even after having read several books (front to back) about C++ best practices, API design, design patterns, and so on, I still bump into some edge of the language from time to time that leaves me scratching my head, rummaging through StackOverflow, and asking coworkers for help. (In the latest case, I was trying and failing to pass a move-only  type into a lambda capture for a lambda being passed as a function parameter. Turns out it doesn't work with std::function - you need something like [unique_function](https://naios.github.io/function2/).) About a year and a half ago I was reading through the [ZeroMQ docs](http://zguide.zeromq.org/page:all) for fun (they're a good read, actually, written by Pieter Hintjens, one of the contributors), and came across this tidbit:
@@ -87,6 +88,8 @@ From the perspective of cgen, a C program can be divided into a few key componen
   * value: The value of the constant.
   
 # Tutorial
+
+## Using the lowest level interface
 
 Here's an example of the use of the raw interface (spoiler alert: we can make this less verbose later) to implement a basic array class for integers:
 
@@ -208,7 +211,9 @@ defineFunction({
 })
 ```
 
-And perhaps a test:
+## Defining an executable
+
+Let's add a test executable for our IntArray class:
 ```c
 defineModule({
   name: "IntArrayTest",
@@ -264,6 +269,8 @@ defineFunction({
 })
 ```
 
+## Getting fancy with macros
+
 But what if we got even FANCIER!? We can pass in the body of the test as a function. I'm not even arguing that this is the best way to do anything, but it's so plastic and fun it makes me happy to play with:
 ```c
 function defineIntArrayTest(size, initVal, testBody) {
@@ -316,6 +323,8 @@ node ribosome.js cgen.js.dna
 ```
 
 What do we get as a result? A header and implementation file for each module, and a makefile with targets to build everything and run the tests. The makefile generation currently is pretty rudimentary but it works.
+
+## Building a class abstraction
 
 The beauty of having a program represented as a bunch of JSON objects is that it's really easy to build higher and higher level abstractions. For example, it's easy to recreate the above IntArray class in the following (less verbose) way:
 ```c
@@ -403,7 +412,9 @@ defineClass({
   }
 })
 ```
-This generates the files IntArray.h/c, IntArrayTest.h/c, and a makefile with a target for building all modules and a target for running the tests.
+This generates the files IntArray.h/c, IntArrayTest.h/c, and a makefile with a target for building all modules and a target for running the tests (`make test`).
+
+## Closing thoughts
 
 What I find really cool is that to build the raw interface took only about 200 lines of javascript (with the help of ribosome), and then building a layer on top of it (completely separate!) to implement the above class abstraction (plus templated classes) only took an extra 100 or so lines of javascript! 
 
