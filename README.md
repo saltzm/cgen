@@ -20,7 +20,7 @@ But then, I came across [ribosome](http://sustrik.github.io/ribosome/), another 
 
 # Core Concepts
 
-I :
+From the perspective of cgen, a C program can be divided into a few key components, each of which can be described by a JSON object. The following list describes each component and its corresponding properties:
 * **module**: Describes a .h/.c file pair. Used for code and makefile generation.
   * executable: Whether the module should be compiled to an executable. If true, a main()
                 function will be automatically defined in the .c file. See 'entry point'
@@ -30,10 +30,10 @@ I :
     module (for now) and wil automatically add the necessary linking dependencies to the
     Makefile for the module.
   * external\_deps: The names of other header files that should be included from
-    projects not written in the cdna format. 
+    projects not written in the cgen format. 
   * external\_libs: The names of other libraries that need to be linked into
     this module.
-* **function**:
+* **function**: Declares/defines a function
   * name: The full name of the function
   * module: The module the function belongs to
   * visibility:
@@ -45,7 +45,7 @@ I :
   * inp: Object of the form { argName : argType, ..., lastArgName : lastArgType }
   * out: Specifies the return type of the function
   * def: Contains the body of the function in ribosome format
-* **struct**:
+* **struct**: Declares/defines a struct
   * name: The name of the struct
   * module: The module the struct belongs to
   * visibility:
@@ -83,8 +83,10 @@ I :
   * module: The module the constant belongs to
   * visibility: 'public'/'private'
   * value: The value of the constant.
+  
+# Tutorial
 
-Example of the use of the raw interface (spoiler alert: we can make this less verbose later) to implement a basic array class for integers:
+Here's an example of the use of the raw interface (spoiler alert: we can make this less verbose later) to implement a basic array class for integers:
 
 ```c
 defineType({
@@ -401,8 +403,8 @@ defineClass({
 ```
 This generates the files IntArray.h/c, IntArrayTest.h/c, and a makefile with a target for building all modules and a target for running the tests.
 
-What I find really cool is that to build the raw interface took only about 200 lines of javascript (with the help of ribosome), and then building a layer on top of it (completely separate!) to implement the above class abstraction, plus templated classes only took an extra 100 or so lines of javascript! 
+What I find really cool is that to build the raw interface took only about 200 lines of javascript (with the help of ribosome), and then building a layer on top of it (completely separate!) to implement the above class abstraction (plus templated classes) only took an extra 100 or so lines of javascript! 
 
-If I wanted to implement a way to enforce inheriting interfaces described by a JSON object (I don't, yet), it would probably only be an additional 50 lines or so. Inheritance of fields in a struct, or actual function definitions? Easy. Want to do make all of your classes add a reference count to their struct and have their destructors always check the reference count before actually freeing memory? Easy. Enforcing a consistent style across files becomes much easier. 
+If I wanted to implement a way to enforce inheriting interfaces described by a JSON object (I don't, yet), it would probably only be an additional 50 lines or so. Inheritance of fields in a struct, or actual function definitions? Easy. Want to do make all of your classes add a reference count to their struct and have their destructors always check the reference count before actually freeing memory? Easy. Enforcing a consistent style across files becomes much easier.
 
-Another nice thing is that if you don't like writing raw JSON like this, it's fairly easy to create your own file format (or use an existing format like YAML) and convert it to JSON before running the generator. 
+Another nice thing is that if you don't like writing raw JSON like this, it's fairly easy to create your own file format (or use an existing format like YAML) and convert it to JSON before running the generator.
