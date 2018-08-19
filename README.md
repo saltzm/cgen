@@ -1,8 +1,8 @@
 
 # What is cgen?
-At its simplest, cgen is a tool that allows you to write C code with metaprogramming in javascript, which generates raw C code along with a Makefile for building and running your code.
+At its simplest, cgen is a tool that generates C code and a Makefile from a mixture of C code and metaprogramming in javascript.
 
-At its finest, it's a tool for letting you build higher and higher level abstractions in a modular manner that allows you to write high performance C code with less and less effort. 
+At its finest, it's a tool for letting you build higher and higher level code generation abstractions to generate high performance C code with less and less effort. 
 
 # Why?
 I've been writing almost exclusively in C++ for work since 2015. Even after having read several books (front to back) about C++ best practices, API design, design patterns, and so on, I still will bump into some edge of the language from time to time that leaves me scratching my head, rummaging through StackOverflow, and asking coworkers for help. (In the latest case, I was trying to pass a move-only (non-copyable) type into a lambda capture and having no luck.) About a year and a half ago I was reading through the [ZeroMQ docs](http://zguide.zeromq.org/page:all) for fun (they're a good read, actually, written by Pieter Hintjens, one of the contributors), and came across this tidbit :
