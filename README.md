@@ -428,6 +428,7 @@ This generates the files IntArray.h/c, IntArrayTest.h/c, and a makefile with a t
 ## Future work
 * Improving Makefile generation or switching to another build tool
 * Building up a library of models and utilities
+* Experimenting with alternate file formats
 * Porting cgen to use the ruby version of ribosome (for ruby enthusiasts)
 
 ## Closing thoughts
