@@ -360,7 +360,7 @@ defineClass({
     },
     Destroy: {
       inp: { self_ptr: mt.Ptr(mt.Ptr(IntArray)) },
-      out: t.Nothing, // Structs automatically get their own type
+      out: t.Nothing,
       def: () => {
 .       assert(self_ptr);
 .       assert(*self_ptr);
