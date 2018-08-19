@@ -5,6 +5,7 @@ At its simplest, cgen is a tool that lets you write C code mixed with metaprogra
 At its finest, cgen is a tool that lets you build higher and higher level abstractions for code generation to help you write C code with less and less effort. 
 
 [Jump to examples](#tutorial)
+
 [Jump to the cooler example](#building-a-class-abstraction)
 
 # Why?
