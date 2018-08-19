@@ -53,8 +53,8 @@ From the perspective of cgen, a C program can be divided into a few key componen
   * name: The name of the struct
   * module: The module the struct belongs to
   * visibility:
-    * 'public': Declares the struct in the .h file for the module. Also defines
-      a 'typedef struct Foo Foo;'.
+    * 'public': Declares the struct in the .h file for the module. Also declares
+      'typedef struct Foo Foo;'.
     * 'private': Declares 'typedef struct Foo Foo;' in the .h file, and
       declares/defines the struct in the .c file
   * data:
