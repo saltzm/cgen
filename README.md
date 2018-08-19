@@ -1,6 +1,6 @@
 
 # What is cgen?
-At its simplest, cgen is a tool that lets you write C code with metaprogramming in javascript.
+At its simplest, cgen is a tool that lets you write C code mixed with metaprogramming in javascript.
 
 At its finest, it's a tool for letting you build higher and higher level abstractions to generate high performance C code with less and less effort. 
 
