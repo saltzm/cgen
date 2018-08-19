@@ -92,6 +92,12 @@ From the perspective of cgen, a C program can be divided into a few key componen
   
 # Tutorial
 
+In order to fully understand everything, it would be helpful to read or at
+least skim the [ribosome](http://sustrik.github.io/ribosome/) documentation. If
+you don't feel like doing that right now, just know that lines preceded with a
+dot ('.') get sent to a file, with macros being JavaScript variables or
+functions surrounded by '@{}' that get inserted in-line.
+
 ## Using the lowest level interface
 
 Here's an example of the use of the raw interface (spoiler alert: we can make this less verbose later) to implement a basic array class for integers:
@@ -445,6 +451,9 @@ defineClass({
 ```
 
 This generates the files IntArray.h/c, IntArrayTest.h/c, and a makefile with a target for building all modules and a target for running the tests (`make test`).
+
+See the [examples](https://www.github.com/saltzm/cgen/examples) for these
+examples in full.
 
 # Closing thoughts
 
