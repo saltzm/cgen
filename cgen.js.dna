@@ -69,7 +69,6 @@ defineStruct = function(obj) {
     assertObjIsUnique(struct, "struct", obj.name)
 
     struct[obj.name] = obj
-    defineType({name: obj.name, ctype: obj.name})
 }
 
 defineEntryPoint = function(obj) {

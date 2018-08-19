@@ -1,0 +1,107 @@
+// TODO Fix indentation in this project
+
+var assert = function (cond, message) {
+    if (!cond) {
+        console.warn("ERROR: " + message)
+        process.exit(-1)
+    }
+}
+
+defineClass = function(class_obj) {
+    assert(class_obj.hasOwnProperty("name"), "Cannot define a class without a name")
+
+    var required_fields = ["name", "metadata", "struct",
+                           "api", "tests"]
+    required_fields.forEach(function(field_name) {
+        assert(class_obj.hasOwnProperty(field_name), 
+            "Class '" + class_obj.name + "' must contain a '" + field_name + "' field.");
+    })
+
+    var class_name = class_obj.name
+    var class_module = class_obj.metadata
+
+    class_module["name"] = class_name
+    class_module["executable"] = false
+
+    defineModule(class_module)
+
+    defineStruct({
+        name: class_name, 
+        visibility: "private",
+        module: class_name,
+        data: class_obj.struct
+    })
+
+  // Require constructor and destructor
+    assert(class_obj.api.hasOwnProperty("Create"), 
+        "Class '" + class_name + "' must define 'Create' function")
+    assert(class_obj.api.hasOwnProperty("Create"), 
+        "Class '" + class_name + "' must define 'Destroy' function")
+
+    Object.entries(class_obj.api).forEach(([func_name, func_props]) => {
+      var full_func_name = class_name + "_" + func_name
+      if (func_name == "Create") {
+          // Enforce constructor returns pointer to class 
+          assert(func_props.out == mt.Ptr(class_name), 
+              "Function 'Create' in class '" + class_name + "' must return a " + 
+              "pointer to an object of the class")
+      } else if (func_name == "Destroy") {
+          // Enforce destructor takes a Class ** and returns void
+          assert(Object.keys(func_props.inp).length == 1 && 
+                func_props.inp.hasOwnProperty("self_ptr") &&
+                func_props.inp.self_ptr == mt.Ptr(mt.Ptr(class_name)) && 
+                func_props.out == t.Nothing, 
+          "Function 'Destroy' in class '" + class_name + "' must accept a " + 
+          "pointer to a pointer to an object of the class and return nothing")
+      } else if (func_name != "Create" && func_name != "Destroy") {
+          // Enforce all members take a pointer to self as first parameter 
+          assert(Object.keys(func_props.inp)[0] == "self" && 
+                func_props.inp["self"] == mt.Ptr(class_name), 
+                "Function '" + func_name + "' in class '" + class_name + "' must" +
+                " have 'self' parameter")
+      }
+
+      defineFunction({
+          name: full_func_name,
+          module: class_name,
+          visibility: "public",
+          inp: func_props.inp,
+          out: func_props.out,
+          def: func_props.def
+      })
+    })
+
+    defineModule({
+        name: class_name + "Test", 
+        executable: true,
+        project_deps: [class_name].concat(class_obj.metadata.project_deps),
+        external_deps: class_obj.metadata.external_deps,
+        external_libs: class_obj.metadata.external_libs
+    })
+
+    defineEntryPoint({
+        name: class_name + "Test_Run",
+        module: class_name + "Test",
+    })
+
+    defineFunction({    
+        name: class_name + "Test_Run",
+        module: class_name + "Test",
+        visibility: "private",
+        inp: {},
+        out: t.Nothing,
+        def: () => {
+.  printf("\nRunning all tests for class %s...\n\n", "@{class_name}");
+            Object.entries(class_obj.tests).forEach(([test_desc, test_body]) => {
+.
+.  printf("Running test: %s\n", "@{test_desc}");
+.
+.  {
+.    @{test_body()}
+.  }
+.
+            })
+.  printf("\nAll tests passed!\n");
+         }
+    })
+}

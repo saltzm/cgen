@@ -27,6 +27,8 @@ defineModule({
   external_libs: []
 })
 
+defineType({name: "IntArray", ctype: "IntArray"})
+
 defineStruct({
   name: "IntArray",
   module: "IntArray",

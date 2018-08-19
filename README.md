@@ -125,6 +125,8 @@ defineModule({
   external_libs: []
 })
 
+defineType({name: "IntArray", ctype: "IntArray"})
+
 defineStruct({
   name: "IntArray",
   module: "IntArray",
@@ -142,7 +144,7 @@ defineFunction({
   module: "IntArray",
   visibility: "public",
   inp: { size: t.Size, init_value: t.Int },
-  out: mt.Ptr(t.IntArray), // Structs automatically get their own type
+  out: mt.Ptr(t.IntArray),
   def: () => {
 .    IntArray *self = malloc(sizeof(IntArray));
 .    assert(self);
@@ -351,16 +353,20 @@ What do we get as a result? A header and implementation file for each module, an
 ## Building a class abstraction
 
 The beauty of having a program represented as a bunch of JSON objects is that it's really easy to build higher and higher level abstractions. For example, it's easy to recreate the above IntArray class in the following (less verbose) way:
+
 ```c
+// This is needed just so we can use t.IntArray below. Somewhat unfortunate.
+defineType({name: "IntArray", ctype: "IntArray"})
+
 defineClass({
   name: "IntArray", // This will define a module called IntArray for us
   struct: { // This will be called IntArray and will be private
     // The size of the array
     size: t.Size,
     // The data in the array
-    data: mt.Ptr(t.Int);
+    data: mt.Ptr(t.Int)
   },
-  module: {
+  metadata: {
     project_deps: [],
     external_deps: ["assert", "stdio", "stdlib"],
     external_libs: []
@@ -382,7 +388,7 @@ defineClass({
       }
     },
     Destroy: {
-      inp: { self_ptr: mt.Ptr(mt.Ptr(IntArray)) },
+      inp: { self_ptr: mt.Ptr(mt.Ptr(t.IntArray)) },
       out: t.Nothing,
       def: () => {
 .       assert(self_ptr);
@@ -406,10 +412,11 @@ defineClass({
       def: () => {
 .       assert(idx < self->size);
 .       return self->data[idx];
+      }
     },
     Set: {
-      inp: { self: mt.Ptr(IntArray), idx: t.Size, val: t.Int },
-      out: t.Int, 
+      inp: { self: mt.Ptr(t.IntArray), idx: t.Size, val: t.Int },
+      out: t.Nothing, 
       def: () => {
 .       assert(idx < self->size);
 .       self->data[idx] = val;
@@ -417,14 +424,14 @@ defineClass({
     }
   },
   tests: {
-    "IntArray_Create creates an array with the correct size": {
+    "IntArray_Create creates an array with the correct size": () => {
 .     size_t size = 3;
 .     int init_val = 0;
 .     IntArray* arr = IntArray_Create(size, init_val);
 .     assert(IntArray_GetSize(arr) == size);
 .     IntArray_Destroy(&arr);
     },
-    "IntArray_Create correctly initializes all values": {
+    "IntArray_Create correctly initializes all values": () => {
 .     size_t size = 3;
 .     int init_val = 0;
 .     IntArray* arr = IntArray_Create(size, init_val);
@@ -436,6 +443,7 @@ defineClass({
   }
 })
 ```
+
 This generates the files IntArray.h/c, IntArrayTest.h/c, and a makefile with a target for building all modules and a target for running the tests (`make test`).
 
 ## Future work
