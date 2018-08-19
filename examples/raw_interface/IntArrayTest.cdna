@@ -1,0 +1,115 @@
+
+defineModule({
+  name: "IntArrayTest",
+  executable: true, // This should be executable, yay. See entry point below.
+  project_deps: ["IntArray"], // Need to include *and* link to IntArray
+  external_deps: ["assert", "stdio", "stdlib"],
+  external_libs: []
+})
+
+defineEntryPoint({
+  name: "RunTests",
+  module: "IntArrayTest"
+})
+
+defineFunction({
+  name: "RunTests",
+  module: "IntArray",
+  visibility: "private",
+  inp: {},
+  out: t.Nothing, 
+  def: () => {
+.   // Test that IntArray_Create creates an array with the correct size
+.   {
+.     size_t size = 3;
+.     int init_val = 0;
+.     IntArray* arr = IntArray_Create(size, init_val);
+.     assert(IntArray_GetSize(arr) == size);
+.     IntArray_Destroy(&arr);
+.   }
+.   // Test that IntArray_Create correctly initializes all values
+.   {
+.     // Let's use the macro now
+.     size_t size = 3;
+.     int init_val = 0;
+.     IntArray* arr = IntArray_Create(size, init_val);
+.     for (size_t i = 0; i < IntArray_GetSize(arr); ++i) {
+.       assert(IntArray_Get(arr, i) == 0);
+.     }
+.     // Yay more macros
+.     IntArray_Destroy(&arr);
+.   }
+.   printf("All tests passed!\n");
+  }
+})
+
+// Example using macros instead
+
+defineModule({
+  name: "IntArrayTestWithMacros",
+  executable: true, // This should be executable, yay. See entry point below.
+  project_deps: ["IntArray"], // Need to include *and* link to IntArray
+  external_deps: ["assert", "stdio", "stdlib"],
+  external_libs: []
+})
+
+defineEntryPoint({
+  name: "RunTestsWithMacros",
+  module: "IntArrayTestWithMacros"
+})
+
+var setUpIntArrayTest = function(size, initVal) {
+.  size_t size = @{size};
+.  int init_val = @{initVal};
+.  IntArray* arr = IntArray_Create(size, init_val);
+}
+
+// This isn't that useful but let's do it for fun anyways
+var tearDownIntArrayTest = function() {
+.  IntArray_Destroy(&arr);
+}
+
+function defineIntArrayTest(size, initVal, testBody) {
+.  {
+.    @{setUpIntArrayTest(size, initVal)}
+.    @{testBody()}
+.    @{tearDownIntArrayTest()}
+.  }
+}
+
+var testThatCreateCreatesAnArrayOfTheCorrectSize = {
+  size: 3,
+  init_val: 0,
+  body: () => {
+.   assert(IntArray_GetSize(arr) == size);
+  }
+}
+
+var testThatSetCorrectlySetsTheValueAtTheRightIndex = {
+  size: 3,
+  init_val: 0,
+  body: () => {
+.   size_t idx = 0;
+.   int val = 3;
+.   IntArray_Set(arr, idx, val);
+.   assert(IntArray_Get(arr, idx) == val);
+  }
+}
+
+var tests = [testThatCreateCreatesAnArrayOfTheCorrectSize, 
+             testThatSetCorrectlySetsTheValueAtTheRightIndex]
+
+defineFunction({
+  name: "RunTestsWithMacros",
+  module: "IntArrayTestWithMacros",
+  visibility: "private",
+  inp: {},
+  out: t.Nothing, 
+  def: () => {
+    tests.forEach(function(test) {
+.     @{defineIntArrayTest(test.size, test.init_val, test.body)} 
+    })
+.   printf("All tests with macros passed!\n");
+  }
+})
+

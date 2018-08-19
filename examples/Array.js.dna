@@ -8,8 +8,8 @@ MemNew = function (type, size) {
 // TODO: Standardize templated type names, e.g. Array__Int_Foo_OtherThing__Create
 
 ArrayT = {
-  name: "Array", 
-  name_fn: function(T) { return capitalize(T)  + "Array" },
+  name : "Array", 
+  name_fn : function(T) { return capitalize(T)  + "Array" },
 }
 
 ArrayT.template  = function(ElementType, elements_are_objects) { 
@@ -24,23 +24,23 @@ ArrayT.template  = function(ElementType, elements_are_objects) {
   console.log(ClassName + "her")
 
   return { 
-    name: ClassName,
-    metadata: {
-      project_deps: [],
-      external_deps: ["assert", "stdlib", "stdio"],
-      external_libs: [] 
+    name : ClassName,
+    metadata : {
+      project_deps : [],
+      external_deps : ["assert", "stdlib", "stdio"],
+      external_libs : [] 
     },
   
-    struct: {
+    struct : {
       // Size of the array
-      size: t.Size,
+      size : t.Size,
       // Elements of the array
-      data: mt.Ptr(ElementType)
+      data : mt.Ptr(ElementType)
     },
   
-    constructor: {
-      inp: { size: t.Size, init_value: ElementType },
-      def: () => {
+    constructor : {
+      inp : { size : t.Size, init_value : ElementType },
+      def : () => {
 .       self->size = size;
 .       self->data = @{MemNew(ElementType, "size")};
 .       assert(self->data);
@@ -50,7 +50,7 @@ ArrayT.template  = function(ElementType, elements_are_objects) {
       }
     },
 
-    destructor: () => {
+    destructor : () => {
       if (elements_are_objects) {
 .       for (int i = 0; i < self->size; ++i) {
 .         @{ElementClass}_Destroy(&(self->data[i]));
@@ -59,27 +59,27 @@ ArrayT.template  = function(ElementType, elements_are_objects) {
 .     free(self->data);
     },
 
-    api: {
-      GetSize: {
-        inp: {},
-        out: t.Size, 
-        def: () => {
+    api : {
+      GetSize : {
+        inp : {},
+        out : t.Size, 
+        def : () => {
 .         return self->size;
         }
       },
-      Get: {
-        inp: { idx: t.Int },
-        out: ElementType,
-        def: () => {
+      Get : {
+        inp : { idx : t.Int },
+        out : ElementType,
+        def : () => {
 .         assert(idx < self->size);
 .         return self->data[idx];
         }
       }, 
 
-      Set: {
-        inp: { idx: t.Int, new_value: ElementType },
-        out: t.Nothing,
-        def: () => {
+      Set : {
+        inp : { idx : t.Int, new_value : ElementType },
+        out : t.Nothing,
+        def : () => {
 .         assert(idx >= 0);
 .         assert(idx < self->size);
   
@@ -92,7 +92,7 @@ ArrayT.template  = function(ElementType, elements_are_objects) {
         }
       }
     },
-    tests: {}
+    tests : {}
   }
 }
 

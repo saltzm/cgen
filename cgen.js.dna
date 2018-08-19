@@ -1,5 +1,10 @@
 
-./!include("cgen_util.js.dna")
+var assert = function (cond, message) {
+    if (!cond) {
+        console.warn("ERROR: " + message)
+        process.exit(-1)
+    }
+}
 
 var t = {} // Type
 var mt = {} // Type
@@ -11,81 +16,112 @@ var dep = {}
 var modules = {}
 var main = {}
 
-defineModule = function(module_name, props) {
-    assert(!modules.hasOwnProperty(module_name), "Cannot redefine module " +
-        module_name)
-    modules[module_name] = props
+// TODO also check no extra fields
+assertObjHasRequiredFields = function(obj, obj_type, required_fields) {
+    required_fields.forEach(function(field) {
+        assert(obj.hasOwnProperty(field), "Cannot define " + obj_type + " " +
+            obj.name + " without a '"
+            + field + "' field")
+    })
 }
 
-defineType = function(type_name, props) {
-    assert(!t.hasOwnProperty(type_name), "Cannot redefine type " +
-        type_name)
-    t[type_name] = props
+assertObjIsUnique = function(obj_container, obj_type, obj_name) {
+    assert(!obj_container.hasOwnProperty(obj_name), 
+        "Cannot redefine " + obj_type + " '" + obj_name + "'")
 }
 
-defineMetatype = function(type_name, props) {
-    assert(!t.hasOwnProperty(type_name), "Cannot redefine metatype " +
-        type_name)
-    mt[type_name] = props
+defineModule = function(obj) {
+    var required_fields = ["name", "executable", "project_deps",
+                           "external_deps", "external_libs"]
+    assertObjHasRequiredFields(obj, "module", required_fields)
+    assertObjIsUnique(modules, "module", obj.name)
+
+    modules[obj.name] = obj
 }
 
-defineFunction = function(func_name, props) {
-    assert(!func.hasOwnProperty(func_name), "Cannot redefine function " +
-        func_name)
-    func[func_name] = props
+defineType = function(obj) {
+    var required_fields = ["name", "ctype"]
+    assertObjHasRequiredFields(obj, "type", required_fields)
+    assertObjIsUnique(t, "type", obj.name)
+
+    t[obj.name] = obj.ctype
 }
 
-defineStruct = function(struct_name, props) {
-    assert(!struct.hasOwnProperty(struct_name), "Cannot redefine struct " +
-        struct_name)
-    struct[struct_name] = props
+defineMetatype = function(obj) {
+    var required_fields = ["name", "def"]
+    assertObjHasRequiredFields(obj, "metatype", required_fields)
+    assertObjIsUnique(mt, "metatype", obj.name)
+
+    mt[obj.name] = obj.def
 }
 
-defineEntryPoint = function(func_name, props) {
-    defineFunction(func_name, props)
-    assert(!main.hasOwnProperty(props.module), "Cannot redefine entry point for module " +
-        props.module)
-    main[func_name] = props
+defineFunction = function(obj) {
+    var required_fields = ["name", "module", "visibility", "inp", "out", "def"]
+    assertObjHasRequiredFields(obj, "function", required_fields)
+    assertObjIsUnique(func, "function", obj.name)
+
+    func[obj.name] = obj
+}
+
+defineStruct = function(obj) {
+    var required_fields = ["name", "module", "visibility", "data"]
+    assertObjHasRequiredFields(obj, "struct", required_fields)
+    assertObjIsUnique(struct, "struct", obj.name)
+
+    struct[obj.name] = obj
+    defineType({name: obj.name, ctype: obj.name})
+}
+
+defineEntryPoint = function(obj) {
+    var required_fields = ["name", "module"]
+    assertObjHasRequiredFields(obj, "entry point", required_fields)
+    assertObjIsUnique(main, "entry point", obj.name)
+
+    main[obj.name] = obj
 }
 
 // TODO
-./!include("cgen_class.js.dna")
 ./!include("package.js.dna")
 
-var writeStructToOutput = function(struct_name, props) {
+var writeStructToOutput = function(struct_obj) {
 .struct 
-.@{struct_name} { 
-    Object.entries(props).forEach(([field_name, field_type]) => {
-        assert(field_type, "Invalid type for field '" + field_name + "' in struct " + struct_name)
+.@{struct_obj.name} { 
+    Object.entries(struct_obj.data).forEach(([field_name, field_type]) => {
+        assert(field_type, 
+            "Invalid type for field '" + field_name + "' in struct " +
+            struct_obj.name)
 .    @{field_type} @{field_name};
     })
 .};
 .
 }
 
-var writeFunctionToOutput = function(func_name, func_def, is_header) {
+var writeFunctionToOutput = function(func_obj, is_header) {
     params = []
-    Object.entries(func_def.inp).forEach(([arg_name, arg_type]) => {
+    Object.entries(func_obj.inp).forEach(([arg_name, arg_type]) => {
         params.push(arg_type + " " + arg_name)
     })
-    func_sig = func_name + "(" + params.join(", ") + ")"
+    func_sig = func_obj.name + "(" + params.join(", ") + ")"
 
-    var ret_type = func_def.out
-.@{ret_type}
+.@{func_obj.out}
 .@{func_sig}
-if (is_header) {
+    if (is_header) {
 ./+;
-} else {
+    } else {
 ./+ {
-.    @{func_def.def()};
+.    @{func_obj.def()};
 .}
+    }
 }
+
+var makeHeaderGuard = function(module_name) { 
+    return module_name.toUpperCase() + "_H_"
 }
 
 Object.entries(modules).forEach(([module_name, props]) => {
-    header_file = "src/" + module_name + ".h"
+    var header_file = "src/" + module_name + ".h"
 ./!output(header_file)
-    header_guard = module_name.toUpperCase() + "_H"
+    var header_guard = makeHeaderGuard(module_name) 
 .#ifndef @{header_guard}
 .#define @{header_guard}
 .
@@ -93,7 +129,7 @@ Object.entries(modules).forEach(([module_name, props]) => {
 .#include "@{other_module}.h"
     })
 
-    class_file = "src/" + module_name + ".c"
+    var class_file = "src/" + module_name + ".c"
 ./!output(class_file)
 .
 .#include "@{module_name}.h"
@@ -104,40 +140,38 @@ Object.entries(modules).forEach(([module_name, props]) => {
 .
 })
 
-Object.entries(struct).forEach(([struct_name, props]) => {
-    header_file = "src/" + props.module + ".h"
-    class_file = "src/" + props.module + ".c"
+Object.entries(struct).forEach(([struct_name, struct_obj]) => {
+    var header_file = "src/" + struct_obj.module + ".h"
+    var class_file = "src/" + struct_obj.module + ".c"
+
+// Write struct typedef to header
 ./!append(header_file)
 .
 .typedef struct @{struct_name} @{struct_name};
 .
 
+// Write struct definition to .c file
 ./!append(class_file)
-.@{writeStructToOutput(struct_name, props.data)}
+.@{writeStructToOutput(struct_obj)}
 })
 
-Object.entries(func).forEach(([func_name, props]) => {
-    header_file = "src/" + props.module + ".h"
-    class_file = "src/" + props.module + ".c"
-    assert(props.hasOwnProperty("inp"), 
-           "Function " + func_name + " is missing input parameter list")
-    assert(props.hasOwnProperty("out"), 
-           "Function " + func_name + " is missing output parameter list")
-    assert(props.hasOwnProperty("def"), 
-           "Function " + func_name + " is missing definition")
-    func_def = props
+Object.entries(func).forEach(([func_name, func_obj]) => {
+    var header_file = "src/" + func_obj.module + ".h"
+    var class_file = "src/" + func_obj.module + ".c"
 
+// Write declaration to header file
 ./!append(header_file)
 .
-.@{writeFunctionToOutput(func_name, func_def, true)}
+.@{writeFunctionToOutput(func_obj, true)}
 
+// Write definition to .c file
 ./!append(class_file)
 .
-.@{writeFunctionToOutput(func_name, func_def, false)}
+.@{writeFunctionToOutput(func_obj, false)}
 })
 
-Object.entries(main).forEach(([func_name, props]) => {
-    class_file = "src/" + props.module + ".c"
+Object.entries(main).forEach(([func_name, entry_point_obj]) => {
+    var class_file = "src/" + entry_point_obj.module + ".c"
 ./!append(class_file)
 .
 .int main() {
@@ -146,9 +180,16 @@ Object.entries(main).forEach(([func_name, props]) => {
 .
 })
 
+
+/**
+ * Generate the Makefile
+ * TODO: Create src and build directories if they don't exist
+ */
 ./!output("Makefile")
 
 ./!tabsize(4)
+
+var compileCommand = "gcc -g -Werror"
 
 Object.entries(modules).forEach(([module_name, props]) => {
 .
@@ -156,32 +197,36 @@ Object.entries(modules).forEach(([module_name, props]) => {
 .@{module_name}: 
         props.project_deps.forEach(function(dep) {
 ./+ @{dep}.o
-    });
-.    gcc -g -Werror -o build/@{module_name} src/@{module_name}.c
-    props.project_deps.forEach(function(dep) {
+        });
+.    @{compileCommand} -o build/@{module_name} src/@{module_name}.c
+        props.project_deps.forEach(function(dep) {
 ./+ build/@{dep}.o
-    });
-
+        });
     } else {
 .@{module_name}.o:
         props.project_deps.forEach(function(dep) {
 ./+ @{dep}.o
         });
-.    gcc -g -Werror -c -o build/@{module_name}.o src/@{module_name}.c
+.    @{compileCommand} -c -o build/@{module_name}.o src/@{module_name}.c
     }
 })
 .
 .clean:
-.    rm build/*
+.    rm -r build/*
 .    rm src/*.h
 .    rm src/*.c
 .
+// Create test target
 .test:
 Object.entries(modules).forEach(([module_name, props]) => {
     if (props.executable) {
 ./+ @{module_name}
     }
 })
+
+// Run all executable modules
+// TODO: Allow specification of which target a module should be in, or have one
+// target per executable module, or both
 Object.entries(modules).forEach(([module_name, props]) => {
     if (props.executable) {
 .    ./build/@{module_name}
@@ -189,13 +234,12 @@ Object.entries(modules).forEach(([module_name, props]) => {
 })
 .
 .
+// End header guard definition
 Object.entries(modules).forEach(([module_name, deps]) => {
-    header_file = "src/" + module_name + ".h"
+    var header_file = "src/" + module_name + ".h"
 ./!append(header_file)
-    header_guard = module_name.toUpperCase() + "_H"
 .
-.#endif // @{header_guard}
-
+.#endif // @{makeHeaderGuard(module_name)}
 })
 
 

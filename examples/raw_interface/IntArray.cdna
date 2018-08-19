@@ -1,0 +1,117 @@
+
+defineType({
+  name: "Int",
+  ctype: "int",
+})
+
+defineType({
+  name: "Size",
+  ctype: "int",
+})
+
+defineType({
+  name: "Nothing",
+  ctype: "void",
+})
+
+defineMetatype({
+  name: "Ptr",
+  def: function(T) { return T + "* "; }
+})
+
+defineModule({
+  name: "IntArray",
+  executable: false,
+  project_deps: [],
+  external_deps: ["assert", "stdio", "stdlib"],
+  external_libs: []
+})
+
+defineStruct({
+  name: "IntArray",
+  module: "IntArray",
+  visibility: "private",
+  data: {
+    // The size of the array
+    size: t.Size,
+    // The data in the array
+    data: mt.Ptr(t.Int)
+  }
+})
+
+defineFunction({
+  name: "IntArray_Create",
+  module: "IntArray",
+  visibility: "public",
+  inp: { size: t.Size, init_value: t.Int },
+  out: mt.Ptr(t.IntArray), // Structs automatically get their own type
+  def: () => {
+.    IntArray *self = malloc(sizeof(IntArray));
+.    assert(self);
+.    self->size = size;
+.    self->data = malloc(self->size * sizeof(int));
+.    assert(self->data);
+.    for (size_t i = 0; i < self->size; ++i) {
+.      self->data[i] = init_value;
+.    }
+.    return self;
+   }
+})
+
+defineFunction({
+  name: "IntArray_Destroy",
+  module: "IntArray",
+  visibility: "public",
+  inp: { self_ptr: mt.Ptr(mt.Ptr(t.IntArray)) },
+  out: t.Nothing,
+  def: () => {
+.    assert(self_ptr);
+.    assert(*self_ptr);
+.    IntArray *self = *self_ptr;
+.    free(self->data);
+.    free(self);
+.    *self_ptr = NULL;
+  }
+})
+
+// Gets the size of the array
+defineFunction({
+  name: "IntArray_GetSize",
+  module: "IntArray",
+  visibility: "public",
+  compiler_directives: ["inline"],
+  inp: { self: mt.Ptr(t.IntArray) },
+  out: t.Size, 
+  def: () => {
+.    return self->size;
+  }
+})
+
+// Gets the value at an index of the array
+defineFunction({
+  name: "IntArray_Get",
+  module: "IntArray",
+  visibility: "public",
+  compiler_directives: ["inline"],
+  inp: { self: mt.Ptr(t.IntArray), idx: t.Size },
+  out: t.Int, 
+  def: () => {
+.    assert(idx < self->size);
+.    return self->data[idx];
+  }
+})
+
+// Sets the value at an index of the array
+defineFunction({
+  name: "IntArray_Set",
+  module: "IntArray",
+  visibility: "public",
+  compiler_directives: ["inline"],
+  inp: { self: mt.Ptr(t.IntArray), idx: t.Size, val : t.Int },
+  out: t.Nothing, 
+  def: () => {
+.    assert(idx < self->size);
+.    self->data[idx] = val;
+  }
+})
+

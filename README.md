@@ -1,6 +1,6 @@
 
 # What is cgen?
-At its simplest, cgen is a tool that lets you write C code mixed with metaprogramming in javascript.
+At its simplest, cgen is a tool that lets you write C code mixed with metaprogramming in JavaScript.
 
 At its finest, cgen is a tool that lets you build higher and higher level abstractions for code generation to help you write C code with less and less effort. 
 
@@ -72,12 +72,12 @@ From the perspective of cgen, a C program can be divided into a few key componen
   * visibility: 'public'/'private'
   * entries: An object of the format { name : value, ... } for each enum entry. Also
              accepts a list of names if the default values may be used.
-* **type**: An alias in javascript for a type in C. When a type is defined with
+* **type**: An alias in JavaScript for a type in C. When a type is defined with
   defineType, the type will be accessible from anywhere as 't.MyAlias'. This 
   currently does **not** define a typedef in C.
   * ctype: The corresponding C type for the alias
   * alias: The alias for the type
-* **metatype**: A javascript function that takes in a type (which is just a string) and outputs
+* **metatype**: A JavaScript function that takes in a type (which is just a string) and outputs
     a new type string. When defined, the metatype will be accessible from
     anywhere as mt.MyMetatype(t.SomeOtherType). An easy example of this would
     be mt.Ptr(t.Int) as a pointer to an int. It would expand to "int \*". 
@@ -98,23 +98,23 @@ Here's an example of the use of the raw interface (spoiler alert: we can make th
 
 ```c
 defineType({
+  name: "Int",
   ctype: "int",
-  alias: "Int"
 })
 
 defineType({
-  ctype: "size_t",
-  alias: "Size"
+  name: "Size",
+  ctype: "int",
 })
 
 defineType({
+  name: "Nothing",
   ctype: "void",
-  alias: "Nothing"
 })
 
 defineMetatype({
   name: "Ptr",
-  func: function(T) { return T + "* "; }
+  def: function(T) { return T + "* "; }
 })
 
 defineModule({
@@ -133,7 +133,7 @@ defineStruct({
     // The size of the array
     size: t.Size,
     // The data in the array
-    data: mt.Ptr(t.Int);
+    data: mt.Ptr(t.Int)
   }
 })
 
@@ -160,7 +160,7 @@ defineFunction({
   name: "IntArray_Destroy",
   module: "IntArray",
   visibility: "public",
-  inp: { self_ptr: mt.Ptr(mt.Ptr(IntArray)) },
+  inp: { self_ptr: mt.Ptr(mt.Ptr(t.IntArray)) },
   out: t.Nothing,
   def: () => {
 .    assert(self_ptr);
@@ -178,7 +178,7 @@ defineFunction({
   module: "IntArray",
   visibility: "public",
   compiler_directives: ["inline"],
-  inp: { self: mt.Ptr(IntArray) },
+  inp: { self: mt.Ptr(t.IntArray) },
   out: t.Size, 
   def: () => {
 .    return self->size;
@@ -191,7 +191,7 @@ defineFunction({
   module: "IntArray",
   visibility: "public",
   compiler_directives: ["inline"],
-  inp: { self: mt.Ptr(IntArray), idx: t.Size },
+  inp: { self: mt.Ptr(t.IntArray), idx: t.Size },
   out: t.Int, 
   def: () => {
 .    assert(idx < self->size);
@@ -205,8 +205,8 @@ defineFunction({
   module: "IntArray",
   visibility: "public",
   compiler_directives: ["inline"],
-  inp: { self: mt.Ptr(IntArray), idx: t.Size, val : t.Int },
-  out: t.Int, 
+  inp: { self: mt.Ptr(t.IntArray), idx: t.Size, val : t.Int },
+  out: t.Nothing, 
   def: () => {
 .    assert(idx < self->size);
 .    self->data[idx] = val;
@@ -218,6 +218,7 @@ defineFunction({
 
 Let's add a test executable for our IntArray class:
 ```c
+
 defineModule({
   name: "IntArrayTest",
   executable: true, // This should be executable, yay. See entry point below.
@@ -232,20 +233,7 @@ defineEntryPoint({
 })
 ```
 
-Let's get fancy and define a macro for setting up a test:
-```c
-var setUpIntArrayTest = function(size, initVal) {
-.  size_t size = @{size};
-.  int init_val = @{initVal};
-.  IntArray* arr = IntArray_Create(size, init_val);
-}
-
-// This isn't that useful but let's do it for fun anyways
-var tearDownIntArrayTest = function() {
-.  IntArray_Destroy(&arr);
-}
-```
-The way ribosome works is that we can now call these functions to substitute their text in place at the call site. See the second test defined here:
+And then define a function to run tests:
 ```c
 defineFunction({
   name: "RunTests",
@@ -265,12 +253,14 @@ defineFunction({
 .   // Test that IntArray_Create correctly initializes all values
 .   {
 .     // Let's use the macro now
-.     @{setUpIntArrayTest(3, 0)}
+.     size_t size = 3;
+.     int init_val = 0;
+.     IntArray* arr = IntArray_Create(size, init_val);
 .     for (size_t i = 0; i < IntArray_GetSize(arr); ++i) {
 .       assert(IntArray_Get(arr, i) == 0);
 .     }
 .     // Yay more macros
-.     @{tearDownIntArrayTest()}
+.     IntArray_Destroy(&arr);
    }
   }
 })
@@ -278,24 +268,44 @@ defineFunction({
 
 ## Getting fancy with macros
 
-But what if we got even FANCIER!? We can pass in the body of the test as a function. I'm not even arguing that this is the best way to do anything, but it's so plastic and fun it makes me happy to play with:
+But what if we got FANCY!? Let's play with macros. The way ribosome works is
+that you can define a JavaScript function that contains in its body lines
+beginning with a '.' which will be sent to output. Then, in any line preceded
+with a dot you can call that function like '@{myMacro()}' and it will
+substitute the text from that function in place.
+
+As an example, let's write a macro for setting up a test, tearing down a test, and running a test. To run a test, we can pass in the just the body of the test as a function, and automatically do setup and teardown. I'm not even arguing that this is the best way to do anything, but it's so plastic and fun it makes me happy to play with:
+
 ```c
+var setUpIntArrayTest = function(size, initVal) {
+.  size_t size = @{size};
+.  int init_val = @{initVal};
+.  IntArray* arr = IntArray_Create(size, init_val);
+}
+
+// This isn't that useful but let's do it for fun anyways
+var tearDownIntArrayTest = function() {
+.  IntArray_Destroy(&arr);
+}
+
 function defineIntArrayTest(size, initVal, testBody) {
-.  @{setUpIntArrayTest(size, initVal)}
-.  @{testBody()}
-.  @{tearDownIntArrayTest()}
+.  {
+.    @{setUpIntArrayTest(size, initVal)}
+.    @{testBody()}
+.    @{tearDownIntArrayTest()}
+.  }
 }
 
 var testThatCreateCreatesAnArrayOfTheCorrectSize = {
-  array_size: 3,
+  size: 3,
   init_val: 0,
   body: () => {
-.   assert(IntArray_Size(arr, idx) == val);
+.   assert(IntArray_GetSize(arr) == size);
   }
 }
 
 var testThatSetCorrectlySetsTheValueAtTheRightIndex = {
-  array_size: 3,
+  size: 3,
   init_val: 0,
   body: () => {
 .   size_t idx = 0;
@@ -305,24 +315,27 @@ var testThatSetCorrectlySetsTheValueAtTheRightIndex = {
   }
 }
 
-var tests = [testThatCreateCreatesAnArrayOfTheCorrectSize, testThatSetCorrectlySetsTheValueAtTheRightIndex]
+var tests = [testThatCreateCreatesAnArrayOfTheCorrectSize, 
+             testThatSetCorrectlySetsTheValueAtTheRightIndex]
 
 defineFunction({
   name: "RunTests",
-  module: "IntArray",
+  module: "IntArrayTest",
   visibility: "private",
   inp: {},
   out: t.Nothing, 
   def: () => {
-    for (test in tests) {
-.     @{defineIntArrayTest(test.array_size, test.init_val, test.body)} 
-    }
+    tests.forEach(function(test) {
+.     @{defineIntArrayTest(test.size, test.init_val, test.body)} 
+    })
+.   printf("All tests passed!\n");
   }
 })
 ```
+
 ## Running cgen
 
-In order to run cgen you'll first need to download the javascript version of [ribosome](http://sustrik.github.io/ribosome/).
+In order to run cgen you'll first need to download the JavaScript version of [ribosome](http://sustrik.github.io/ribosome/).
 
 Create a file `package.js.dna` in the same directory as ribosome.js and cgen.js.dna containing the following: 
 ```
@@ -433,7 +446,7 @@ This generates the files IntArray.h/c, IntArrayTest.h/c, and a makefile with a t
 
 ## Closing thoughts
 
-What I find really cool is that to build the raw interface took only about 200 lines of javascript (with the help of ribosome), and then building a layer on top of it (completely separate!) to implement the above class abstraction (plus templated classes) only took an extra 100 or so lines of javascript! 
+What I find really cool is that to build the raw interface took only about 200 lines of JavaScript (with the help of ribosome), and then building a layer on top of it (completely separate!) to implement the above class abstraction (plus templated classes) only took an extra 100 or so lines of JavaScript! 
 
 If I wanted to implement a way to enforce inheriting interfaces described by a JSON object (I don't, yet), it would probably only be an additional 50 lines or so. Inheritance of fields in a struct, or actual function definitions? Easy. Want to do make all of your classes add a reference count to their struct and have their destructors always check the reference count before actually freeing memory? Easy. Enforcing a consistent style across files becomes much easier.
 
