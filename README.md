@@ -9,6 +9,8 @@ At its finest, cgen is a tool that lets you build higher and higher level abstra
 [Jump to the cooler example](#building-a-class-abstraction)
 
 # Why?
+C++ template metaprogramming is Turing complete... But would you ever really want to write a whole program in it?
+
 I've been writing almost exclusively in C++ for work since 2015. Even after having read several books about C++ best practices, API design, design patterns, and so on, I still bump into parts of the language from time to time that leave me scratching my head, rummaging through StackOverflow, and asking coworkers for help. (In the latest case, I was trying and failing to pass a move-only type into a lambda capture for a lambda being passed as a function parameter. Turns out it doesn't work with the standard library - you need something like [unique_function](https://naios.github.io/function2/).) About a year and a half ago I was reading through the [ZeroMQ docs](http://zguide.zeromq.org/page:all) for fun (they're a good read, actually, written by Pieter Hintjens, one of the contributors), and came across this tidbit:
 >... my preferred language for systems programming is C (upgraded to C99, with a constructor/destructor API model and generic containers). There are two reasons I like this modernized C language. First, **I'm too weak-minded to learn a big language like C++. Life just seems filled with more interesting things to understand.** Second, I find that this specific level of manual control lets me produce better results, faster.
 
@@ -228,8 +230,10 @@ defineEntryPoint({
   name: "RunTests",
   module: "IntArrayTest"
 })
+```
 
-// Let's get fancy and define a macro for setting up a test
+Let's get fancy and define a macro for setting up a test:
+```c
 var setUpIntArrayTest = function(size, initVal) {
 .  size_t size = @{size};
 .  int init_val = @{initVal};
@@ -240,7 +244,9 @@ var setUpIntArrayTest = function(size, initVal) {
 var tearDownIntArrayTest = function() {
 .  IntArray_Destroy(&arr);
 }
-
+```
+The way ribosome works is that we can now call these functions to substitute their text in place at the call site. See the second test defined here:
+```c
 defineFunction({
   name: "RunTests",
   module: "IntArray",
@@ -314,7 +320,11 @@ defineFunction({
   }
 })
 ```
-Then define a file `package.js.dna` as follows: 
+## Running cgen
+
+In order to run cgen you'll first need to download the javascript version of [ribosome](http://sustrik.github.io/ribosome/).
+
+Create a file `package.js.dna` in the same directory as ribosome.js and cgen.js.dna containing the following: 
 ```
 ./!include("IntArray.js.dna")
 ```
@@ -415,10 +425,15 @@ defineClass({
 ```
 This generates the files IntArray.h/c, IntArrayTest.h/c, and a makefile with a target for building all modules and a target for running the tests (`make test`).
 
+## Future work
+* Improving Makefile generation or switching to another build tool
+* Building up a library of models and utilities
+* Porting cgen to use the ruby version of ribosome (for ruby enthusiasts)
+
 ## Closing thoughts
 
 What I find really cool is that to build the raw interface took only about 200 lines of javascript (with the help of ribosome), and then building a layer on top of it (completely separate!) to implement the above class abstraction (plus templated classes) only took an extra 100 or so lines of javascript! 
 
 If I wanted to implement a way to enforce inheriting interfaces described by a JSON object (I don't, yet), it would probably only be an additional 50 lines or so. Inheritance of fields in a struct, or actual function definitions? Easy. Want to do make all of your classes add a reference count to their struct and have their destructors always check the reference count before actually freeing memory? Easy. Enforcing a consistent style across files becomes much easier.
 
-Another nice thing is that if you don't like writing raw JSON like this, it's fairly easy to create your own file format (or use an existing format like YAML) and convert it to JSON before running the generator.
+Another nice thing is that if you don't like writing raw JSON like this, it's fairly easy to create your own file format (or use an existing format like YAML) and convert it to JSON before running the generator. Building extra tooling around it shouldn't be difficult either.
