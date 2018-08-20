@@ -1,5 +1,7 @@
 
+// Order is important since later files can use variables defined by earlier
+// files. This also means that if you try to have circular dependencies you'll
+// be out of luck.
 ./!include("Types.cdna")
-./!include("cgen_class.cdna")
-
+./!include("cgen_class.js.dna")
 ./!include("IntArray.cdna")
