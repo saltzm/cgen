@@ -1,11 +1,6 @@
-// TODO Fix indentation in this project
+// TODO Fix indentation in this entire project
 
-var assert = function (cond, message) {
-    if (!cond) {
-        console.warn("ERROR: " + message)
-        process.exit(-1)
-    }
-}
+./!include("util.js.dna")
 
 defineClass = function(class_obj) {
     assert(class_obj.hasOwnProperty("name"), "Cannot define a class without a name")

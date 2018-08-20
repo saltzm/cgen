@@ -5,6 +5,11 @@ defineType({
 })
 
 defineType({
+  name: "Double",
+  ctype: "double",
+})
+
+defineType({
   name: "Size",
   ctype: "int",
 })

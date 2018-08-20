@@ -4,4 +4,6 @@
 // be out of luck.
 ./!include("Types.cdna")
 ./!include("cgen_class.js.dna")
+./!include("metaclass.js.dna")
 ./!include("IntArray.cdna")
+./!include("Array.cdna")

@@ -9,6 +9,7 @@ var assert = function (cond, message) {
 var t = {}
 var mt = {}
 var struct = {} 
+// TODO separate public from private funcs
 var func = {}
 var constant = {}
 var module = {}
@@ -165,7 +166,6 @@ Object.entries(struct).forEach(([struct_name, struct_obj]) => {
 Object.entries(func).forEach(([func_name, func_obj]) => {
     var header_file = "src/" + func_obj.module + ".h"
     var class_file = "src/" + func_obj.module + ".c"
-    console.log(func_name + " " + func_obj.visibility)
     if (func_obj.visibility == "public") {
 // Write declaration to header file
 ./!append(header_file)
