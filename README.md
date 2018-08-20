@@ -63,8 +63,7 @@ From the perspective of cgen, a C program can be divided into a few key componen
       'typedef struct Foo Foo;'.
     * 'private': Declares 'typedef struct Foo Foo;' in the .h file, and
       declares/defines the struct in the .c file
-  * **data**:
-    * Object of the form { fieldName : fieldType, ..., lastFieldName : lastFieldType }
+  * **data**: Object of the form { fieldName : fieldType, ..., lastFieldName : lastFieldType } defining the fields of the struct.
 * **entry point**: A function to be called directly from main(). This is required
   for a module that's executable. The function currently must accept no
   arguments and return void but later on should accept command line arguments
