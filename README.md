@@ -11,7 +11,9 @@ At its finest, cgen is a tool that lets you build higher and higher level abstra
 # Why?
 C++ template metaprogramming is Turing complete... But would you ever really want to write a whole program in it?
 
-I've been writing almost exclusively in C++ for work since 2015. Even after having read several books about C++ best practices, API design, design patterns, and so on, I still bump into parts of the language from time to time that leave me scratching my head, rummaging through StackOverflow, and asking coworkers for help. (In the latest case, I was trying and failing to pass a move-only type into a lambda capture for a lambda being passed as a function parameter. Turns out it doesn't work with the standard library - you need something like [unique_function](https://naios.github.io/function2/).) About a year and a half ago I was reading through the [ZeroMQ docs](http://zguide.zeromq.org/page:all) for fun (they're a good read, actually, written by Pieter Hintjens, one of the contributors), and came across this tidbit:
+I've been writing almost exclusively in C++ for work since 2015. Even after having read several books about C++ best practices, API design, design patterns, and so on, I still bump into parts of the language from time to time that leave me scratching my head, rummaging through StackOverflow, and asking coworkers for help. (In the latest case, I was trying and failing to pass a move-only type into a lambda capture for a lambda being passed as a function parameter. Turns out it doesn't work with the standard library - you need something like [unique_function](https://naios.github.io/function2/).) 
+
+About a year and a half ago I was reading through the [ZeroMQ docs](http://zguide.zeromq.org/page:all) for fun (they're a good read, actually, written by Pieter Hintjens, one of the contributors), and came across this tidbit:
 >... my preferred language for systems programming is C (upgraded to C99, with a constructor/destructor API model and generic containers). There are two reasons I like this modernized C language. First, **I'm too weak-minded to learn a big language like C++. Life just seems filled with more interesting things to understand.** Second, I find that this specific level of manual control lets me produce better results, faster.
 
 This quote, in addition to the section on [code generation](http://zguide.zeromq.org/page:all#Code-Generation), inspired me and led me down a rabbit hole to the iMatix projects [gsl (the code generation tool described in the ZeroMQ docs)](https://github.com/imatix/gsl), [zproject](https://github.com/zeromq/zproject) and [zproto](https://github.com/zeromq/zproto). 
@@ -36,9 +38,11 @@ From the perspective of cgen, a C program can be divided into a few key componen
     module (for now) and wil automatically add the necessary linking dependencies to the
     Makefile for the module.
   * external\_deps: The names of other header files that should be included from
-    projects not written in the cgen format. 
+    projects not written in the cgen format. (Makefile integration not yet
+    implemented, i.e. this file will be #included but will not add the
+    appropriate "-I" flag to the compiler command if it's necessary.)
   * external\_libs: The names of other libraries that need to be linked into
-    this module.
+    this module. (Not yet implemented.)
 * **function**: Declares/defines a function
   * name: The full name of the function
   * module: The module the function belongs to
@@ -47,7 +51,7 @@ From the perspective of cgen, a C program can be divided into a few key componen
       in the .c file
     * 'private': Declares and defines the function in the .c file and marks it
       'static'
-  * compiler_directives: A list of things like "inline" to precede the function signature, static should never be necessary though
+  * compiler\_directives: A list of things like "inline" to precede the function signature, static should never be necessary though
   * inp: Object of the form { argName : argType, ..., lastArgName : lastArgType }
   * out: Specifies the return type of the function
   * def: Contains the body of the function in ribosome format
@@ -75,8 +79,8 @@ From the perspective of cgen, a C program can be divided into a few key componen
 * **type**: An alias in JavaScript for a type in C. When a type is defined with
   defineType, the type will be accessible from anywhere as 't.MyAlias'. This 
   currently does **not** define a typedef in C.
+  * name: The alias for the type
   * ctype: The corresponding C type for the alias
-  * alias: The alias for the type
 * **metatype**: A JavaScript function that takes in a type (which is just a string) and outputs
     a new type string. When defined, the metatype will be accessible from
     anywhere as mt.MyMetatype(t.SomeOtherType). An easy example of this would

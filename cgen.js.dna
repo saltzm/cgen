@@ -6,9 +6,9 @@ var assert = function (cond, message) {
     }
 }
 
-var t = {} // Type
-var mt = {} // Type
-var struct = {}
+var t = {}
+var mt = {}
+var struct = {} 
 var func = {}
 var constant = {}
 var module = {}
@@ -79,7 +79,6 @@ defineEntryPoint = function(obj) {
     main[obj.name] = obj
 }
 
-// TODO
 ./!include("package.js.dna")
 
 var writeStructToOutput = function(struct_obj) {
@@ -96,12 +95,15 @@ var writeStructToOutput = function(struct_obj) {
 }
 
 var writeFunctionToOutput = function(func_obj, is_header) {
-    params = []
+    var params = []
     Object.entries(func_obj.inp).forEach(([arg_name, arg_type]) => {
         params.push(arg_type + " " + arg_name)
     })
-    func_sig = func_obj.name + "(" + params.join(", ") + ")"
-
+    var func_sig = func_obj.name + "(" + params.join(", ") + ")"
+    if (func_obj.hasOwnProperty("compiler_directives")) {
+        var compiler_directives = func_obj.compiler_directives.join(" ")
+.@{compiler_directives}
+    }
 .@{func_obj.out}
 .@{func_sig}
     if (is_header) {
@@ -146,26 +148,37 @@ Object.entries(struct).forEach(([struct_name, struct_obj]) => {
 // Write struct typedef to header
 ./!append(header_file)
 .
+    if (struct_obj.visibility == "public") {
+.@{writeStructToOutput(struct_obj)}
+.
+    }
 .typedef struct @{struct_name} @{struct_name};
 .
 
+    if (struct_obj.visibility == "private") {
 // Write struct definition to .c file
 ./!append(class_file)
 .@{writeStructToOutput(struct_obj)}
+    }
 })
 
 Object.entries(func).forEach(([func_name, func_obj]) => {
     var header_file = "src/" + func_obj.module + ".h"
     var class_file = "src/" + func_obj.module + ".c"
-
+    console.log(func_name + " " + func_obj.visibility)
+    if (func_obj.visibility == "public") {
 // Write declaration to header file
 ./!append(header_file)
 .
 .@{writeFunctionToOutput(func_obj, true)}
+    }
 
 // Write definition to .c file
 ./!append(class_file)
 .
+    if (func_obj.visibility == "private") {
+.static
+    }
 .@{writeFunctionToOutput(func_obj, false)}
 })
 

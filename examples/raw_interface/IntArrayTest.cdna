@@ -14,7 +14,7 @@ defineEntryPoint({
 
 defineFunction({
   name: "RunTests",
-  module: "IntArray",
+  module: "IntArrayTest",
   visibility: "private",
   inp: {},
   out: t.Nothing, 

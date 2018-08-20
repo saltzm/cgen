@@ -32,7 +32,7 @@ defineType({name: "IntArray", ctype: "IntArray"})
 defineStruct({
   name: "IntArray",
   module: "IntArray",
-  visibility: "private",
+  visibility: "public",
   data: {
     // The size of the array
     size: t.Size,
@@ -81,7 +81,6 @@ defineFunction({
   name: "IntArray_GetSize",
   module: "IntArray",
   visibility: "public",
-  compiler_directives: ["inline"],
   inp: { self: mt.Ptr(t.IntArray) },
   out: t.Size, 
   def: () => {
@@ -94,7 +93,6 @@ defineFunction({
   name: "IntArray_Get",
   module: "IntArray",
   visibility: "public",
-  compiler_directives: ["inline"],
   inp: { self: mt.Ptr(t.IntArray), idx: t.Size },
   out: t.Int, 
   def: () => {
@@ -108,7 +106,6 @@ defineFunction({
   name: "IntArray_Set",
   module: "IntArray",
   visibility: "public",
-  compiler_directives: ["inline"],
   inp: { self: mt.Ptr(t.IntArray), idx: t.Size, val : t.Int },
   out: t.Nothing, 
   def: () => {

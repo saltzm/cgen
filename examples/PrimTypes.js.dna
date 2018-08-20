@@ -1,7 +1,0 @@
-
-defineMetatype("Ptr", function(type) { return type + "*"; });
-
-defineType("Nothing", "void")
-defineType("Size", "int")
-defineType("Int", "int")
-defineType("Double", "double")
