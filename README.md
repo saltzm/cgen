@@ -52,7 +52,7 @@ From the perspective of cgen, a C program can be divided into a few key componen
     * 'private': Declares and defines the function in the .c file and marks it
       'static'
   * **compiler\_directives** (optional): A list of things like "inline" to precede the function signature, static should never be necessary though
-  * **inp**: Object of the form { argName : argType, ..., lastArgName : lastArgType }
+  * **inp**: Object of the form ` { argName : argType, ..., lastArgName : lastArgType } `
   * **out**: Specifies the return type of the function
   * **def**: Contains the body of the function in ribosome format
 * **struct**: Declares/defines a struct
@@ -63,7 +63,7 @@ From the perspective of cgen, a C program can be divided into a few key componen
       'typedef struct Foo Foo;'.
     * 'private': Declares 'typedef struct Foo Foo;' in the .h file, and
       declares/defines the struct in the .c file
-  * **data**: Object of the form { fieldName : fieldType, ..., lastFieldName : lastFieldType } defining the fields of the struct.
+  * **data**: Object of the form `{ fieldName : fieldType, ..., lastFieldName : lastFieldType }` defining the fields of the struct.
 * **entry point**: A function to be called directly from main(). This is required
   for a module that's executable. The function currently must accept no
   arguments and return void but later on should accept command line arguments
@@ -74,7 +74,7 @@ From the perspective of cgen, a C program can be divided into a few key componen
   * **name**: The name of the enum
   * **module**: The module the enum belongs to
   * **visibility**: 'public'/'private'
-  * **entries**: An object of the format { name : value, ... } for each enum entry. Also
+  * **entries**: An object of the format `{ name : value, ... }` for each enum entry. Also
              accepts a list of names if the default values may be used.
 * **type**: An alias in JavaScript for a type in C. When a type is defined with
   defineType, the type will be accessible from anywhere as 't.MyAlias'. This 
@@ -83,8 +83,8 @@ From the perspective of cgen, a C program can be divided into a few key componen
   * **ctype**: The corresponding C type for the alias
 * **metatype**: A JavaScript function that takes in a type (which is just a string) and outputs
     a new type string. When defined, the metatype will be accessible from
-    anywhere as mt.MyMetatype(t.SomeOtherType). An easy example of this would
-    be mt.Ptr(t.Int) as a pointer to an int. It would expand to "int \*". 
+    anywhere as `mt.MyMetatype(t.SomeOtherType)`. An easy example of this would
+    be `mt.Ptr(t.Int)` as a pointer to an int. It would expand to "int \*". 
     Unions could also be defined this way.
   * **name**: The name of the metatype
   * **func**: Function from type to metatype name
