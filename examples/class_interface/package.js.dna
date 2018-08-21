@@ -3,7 +3,7 @@
 // files. This also means that if you try to have circular dependencies you'll
 // be out of luck.
 ./!include("Types.cdna")
-./!include("cgen_class.js.dna")
+./!include("class.js.dna")
 ./!include("metaclass.js.dna")
 ./!include("IntArray.cdna")
 ./!include("Array.cdna")
