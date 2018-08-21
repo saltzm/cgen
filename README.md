@@ -456,6 +456,139 @@ defineClass({
 
 This generates the files IntArray.h/c, IntArrayTest.h/c, and a makefile with a target for building all modules and a target for running the tests (`make test`).
 
+## Templated Types
+
+"But wait! How can we implement generic containers?! Surely it must be nigh
+impossible!"
+
+Don't worry dear reader, I have heard your voice through the ether and thus, I
+give you the magic codez for implementing templated types....!: 
+
+```js
+// Container for metaclasses
+mc = {}
+
+defineMetaclass = function(obj) {
+    assert(!mc.hasOwnProperty(obj.name), 
+        "Cannot redefine metaclass '" + obj.name + "'")
+    mc[obj.name] = obj.template
+    defineMetatype({
+        name: obj.name,
+        def: obj.instance_name
+    })
+}
+```
+
+"No! It can't be! How is it possible?"
+
+Yes, my friend, take a looksie at the usage of such devices and marvel:
+
+```c
+// Wouldn't necessary if we included it in package.js.dna, but this is just an
+// example of how to include other files
+./!include("util.js.dna")
+
+// An object to be passed to "defineMetaclass"
+var ArrayMetaclass = {
+  // This will add Array to a global variable 'mc' (short for metaclass) so
+  // that you can declare a new instance as declareClass(mc.Array(t.MyType))
+  name: "Array", 
+  // This will define a metatype called Array for us so that mt.Array(t.MyType)
+  // will return "MyTypeArray"
+  instance_name: function(T) { return capitalize(T) + "Array" }
+}
+
+// You could just define this in the object above but I'd prefer less
+// indentation
+ArrayMetaclass.template = function(T) { 
+  var ElementArray = ArrayMetaclass.instance_name(T)
+
+  return { 
+
+  // I know this indentation is weird... Whatever
+  name: ElementArray,
+  struct: { 
+    // The size of the array
+    size: t.Size,
+    // The data in the array
+    data: mt.Ptr(T)
+  },
+  metadata: {
+    project_deps: [],
+    external_deps: ["assert", "stdio", "stdlib"],
+    external_libs: []
+  },
+  api: {
+    Create: {
+      inp: { size: t.Size, init_value: T },
+      out: mt.Ptr(ElementArray),
+      def: () => {
+.       @{ElementArray}*self = malloc(sizeof(@{ElementArray}));
+.       assert(self);
+.       self->size = size;
+.       self->data = malloc(self->size * sizeof(@{T}));
+.       assert(self->data);
+.       for (size_t i = 0; i < self->size; ++i) {
+.         self->data[i] = init_value;
+.       }
+.       return self;
+      }
+    },
+    Destroy: {
+      inp: { self_ptr: mt.Ptr(mt.Ptr(ElementArray)) },
+      out: t.Nothing,
+      def: () => {
+.       assert(self_ptr);
+.       assert(*self_ptr);
+.       @{ElementArray}* self = *self_ptr;
+.       free(self->data);
+.       free(self);
+.       *self_ptr = NULL;
+      }
+    },
+    GetSize: {
+      inp: { self: mt.Ptr(ElementArray) },
+      out: t.Size,
+      def: () => {
+.       return self->size;
+      }
+    },
+    // ... You get the idea
+  },
+  // We can't really define tests in the Array metaclass since we don't know
+  // necessarily how to e.g. initialize elements without knowing what their 
+  // type will be.
+  tests: {}
+}}
+
+// Actually define the thing so we can see it from other places
+defineMetaclass(ArrayMetaclass)
+```
+
+Okay, that's all well and good, but how is it *used*? Let's look at the tests:
+```c
+// Let's make an array of doubles just for testing. 
+TestArray = mc.Array(t.Double)
+TestArray.tests = {
+  "DoubleArray_Create creates an array with the correct size": () => {
+.   size_t size = 3;
+.   int init_val = 0;
+.   DoubleArray* arr = DoubleArray_Create(size, init_val);
+.   assert(DoubleArray_GetSize(arr) == size);
+.   DoubleArray_Destroy(&arr);
+  },
+  "DoubleArray_Create correctly initializes all values": () => {
+.   size_t size = 3;
+.   int init_val = 0;
+.   DoubleArray* arr = DoubleArray_Create(size, init_val);
+.   for (size_t i = 0; i < DoubleArray_GetSize(arr); ++i) {
+.     assert(DoubleArray_Get(arr, i) == 0);
+.   }
+.   DoubleArray_Destroy(&arr);
+  }
+}
+```
+
 See the [examples](https://www.github.com/saltzm/cgen/examples) for these
 examples in full.
 
