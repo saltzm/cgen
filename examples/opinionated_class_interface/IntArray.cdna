@@ -1,0 +1,77 @@
+
+defineType({name: "IntArray", ctype: "IntArray"})
+
+defineClass({
+  name: "IntArray", // This will define a module called IntArray for us
+  struct: { // This will be called IntArray and will be private
+    // The size of the array
+    size: t.Size,
+    // The data in the array
+    data: mt.Ptr(t.Int)
+  },
+  metadata: {
+    project_deps: [],
+    external_deps: ["assert", "stdio", "stdlib"],
+    external_libs: []
+  },
+  api: {
+    Create: {
+      inp: { size: t.Size, init_value: t.Int },
+      def: () => {
+.       self->size = size;
+.       self->data = malloc(self->size * sizeof(int));
+.       assert(self->data);
+.       for (size_t i = 0; i < self->size; ++i) {
+.         self->data[i] = init_value;
+.       }
+      }
+    },
+    Destroy: {
+      def: () => {
+.       free(self->data);
+      }
+    },
+    GetSize: {
+      inp: { },
+      out: t.Size,
+      def: () => {
+.       return self->size;
+      }
+    },
+    Get: {
+      inp: { idx: t.Size },
+      out: t.Int, 
+      def: () => {
+.       assert(idx < self->size);
+.       return self->data[idx];
+      }
+    },
+    Set: {
+      inp: { idx: t.Size, val: t.Int },
+      out: t.Nothing, 
+      def: () => {
+.       assert(idx < self->size);
+.       self->data[idx] = val;
+      }
+    }
+  },
+  tests: {
+    "IntArray_Create creates an array with the correct size": () => {
+.     size_t size = 3;
+.     int init_val = 0;
+.     IntArray* arr = IntArray_Create(size, init_val);
+.     assert(IntArray_GetSize(arr) == size);
+.     IntArray_Destroy(&arr);
+    },
+    "IntArray_Create correctly initializes all values": () => {
+.     size_t size = 3;
+.     int init_val = 0;
+.     IntArray* arr = IntArray_Create(size, init_val);
+.     for (size_t i = 0; i < IntArray_GetSize(arr); ++i) {
+.       assert(IntArray_Get(arr, i) == 0);
+.     }
+.     IntArray_Destroy(&arr);
+    }
+  }
+})
+

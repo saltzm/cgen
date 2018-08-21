@@ -32,6 +32,7 @@ ArrayMetaclass.template = function(T, elements_are_objects = false) {
   // ElementType_Destroy on each of them to clean up the memory. This assumes
   // that the Array takes ownership of the memory for these objects, which is a
   // choice I'm making for demonstrative purposes.
+
   if (elements_are_objects) {
     var ElementType = mt.Ptr(T)
     var ElementClass = T
@@ -57,45 +58,36 @@ ArrayMetaclass.template = function(T, elements_are_objects = false) {
   api: {
     Create: {
       inp: { size: t.Size, init_value: ElementType },
-      out: mt.Ptr(ElementArray),
       def: () => {
-.       @{ElementArray}*self = malloc(sizeof(@{ElementArray}));
-.       assert(self);
 .       self->size = size;
 .       self->data = malloc(self->size * sizeof(@{ElementType}));
 .       assert(self->data);
 .       for (size_t i = 0; i < self->size; ++i) {
-.         self->data[i] = init_value;
+.         // While it would be silly to pass in a pointer to an existing
+.         // object as the initial value, we'll pass it to the Set path
+.         // to make sure the refcount is incremeneted enough times
+.         @{ElementArray}_Set(self, i, init_value);
 .       }
-.       return self;
       }
     },
     Destroy: {
-      inp: { self_ptr: mt.Ptr(mt.Ptr(ElementArray)) },
-      out: t.Nothing,
       def: () => {
-.       assert(self_ptr);
-.       assert(*self_ptr);
-.       @{ElementArray}* self = *self_ptr;
-
         // If the elements are objects we want to destroy them all. For our
         // non-object arrays (like arrays of primitive types) this code won't
         // be generated!
-        if (elements_are_objects) {
+if (elements_are_objects) {
 .       for (int i = 0; i < self->size; ++i) {
 .         // We can do this because our class abstraction enforces
 .         // the same destructor API across all objects.
 .         @{ElementClass}_Destroy(&(self->data[i]));
 .       }
-        }
+}
 
 .       free(self->data);
-.       free(self);
-.       *self_ptr = NULL;
       }
     },
     GetSize: {
-      inp: { self: mt.Ptr(ElementArray) },
+      inp: { },
       out: t.Size,
       def: () => {
 .       return self->size;
@@ -114,6 +106,11 @@ ArrayMetaclass.template = function(T, elements_are_objects = false) {
       out: t.Nothing, 
       def: () => {
 .       assert(idx < self->size);
+if (elements_are_objects) {
+.       if (val) {
+.         @{ElementClass}_IncRefCount(val);
+.       }
+}
 .       self->data[idx] = val;
       }
     }
@@ -148,6 +145,7 @@ TestArray.tests = {
   }
 }
 
+defineType({name: TestArray.name, ctype: TestArray.name})
 defineClass(TestArray)
 
 /**
@@ -171,26 +169,16 @@ defineClass({
   api: {
     Create: {
       inp: { my_int: mt.Ptr(t.Int) },
-      out: mt.Ptr(t.TestObj),
       def: () => {
-.       TestObj* self = malloc(sizeof(TestObj));
 .       assert(self);
 .       self->my_int = my_int;
-.       return self;
       }
     },
     Destroy: {
-      inp: { self_ptr: mt.Ptr(mt.Ptr(t.TestObj)) },
-      out: t.Nothing,
       def: () => {
-.       assert(self_ptr);
-.       assert(*self_ptr);
-.       TestObj* self = *self_ptr;
 .       // Zero out element so we can tell from the outside that
 .       // the object was destructed
 .       *(self->my_int) = 0;
-.       free(self);
-.       *self_ptr = NULL;
       }
     }
   }, 
@@ -209,12 +197,31 @@ TestObjArray.tests = {
 .   TestObj* test_obj = TestObj_Create(&test_int);
 .
 .   TestObjArray_Set(arr, 0, test_obj);
+.   // Since we're refcounting, we need to destroy this first
+.   TestObj_Destroy(&test_obj);
 .   TestObjArray_Destroy(&arr);
 .   // If we correctly destroyed the TestObj in the destructor, 
 .   // this int should be set to 0
 .   assert(test_int == 0);
-  }
+  }, 
+  "TestObjArray_Set increments refcount": () => {
+.   int size = 1;
+.   TestObj* init_val = NULL;
+.   TestObjArray* arr = TestObjArray_Create(size, init_val);
+.
+.   int test_int = 42;
+.   TestObj* test_obj = TestObj_Create(&test_int);
+.
+.   TestObjArray_Set(arr, 0, test_obj);
+.   TestObjArray_Destroy(&arr);
+.   // Refcount should be non-zero so this shouldn't have been affected
+.   assert(test_int == 42);
+.
+.   TestObj_Destroy(&test_obj);
+
+  },
 }
 
+defineType({name: TestObjArray.name, ctype: TestObjArray.name})
 defineClass(TestObjArray)
 

@@ -1,0 +1,27 @@
+
+defineType({
+  name: "Int",
+  ctype: "int",
+})
+
+defineType({
+  name: "Double",
+  ctype: "double",
+})
+
+defineType({
+  name: "Size",
+  ctype: "int",
+})
+
+defineType({
+  name: "Nothing",
+  ctype: "void",
+})
+
+defineMetatype({
+  name: "Ptr",
+  def: function(T) { return T + "* "; }
+})
+
+

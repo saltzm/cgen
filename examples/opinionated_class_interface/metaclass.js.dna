@@ -1,0 +1,13 @@
+
+// Container for metaclasses
+mc = {}
+
+defineMetaclass = function(obj) {
+    assert(!mc.hasOwnProperty(obj.name), 
+        "Cannot redefine metaclass '" + obj.name + "'")
+    mc[obj.name] = obj.template
+    defineMetatype({
+        name: obj.name,
+        def: obj.instance_name
+    })
+}
