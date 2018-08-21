@@ -458,8 +458,8 @@ This generates the files IntArray.h/c, IntArrayTest.h/c, and a makefile with a t
 
 ## Templated Types
 
-"But wait! How can we implement generic containers?! Surely it must be nigh
-impossible!"
+"But wait! How can we implement containers that are GENERIC?! Surely it must be nigh
+IMPOSSIBLE!"
 
 Don't worry dear reader, I have heard your voice through the ether and thus, I
 give you the magic codez for implementing templated types....!: 
