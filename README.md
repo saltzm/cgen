@@ -593,23 +593,20 @@ TestArray.tests = {
 But what if we want our Array to also be able to hold objects and own their memory (i.e. destroy the objects it contains when it's destroyed)? We can modify the above as follows:
 
 ```c
-// T is the type of the element we're storing, or the name of the
-// class if we're storing objects as elements. 
-// elements_are_objects is a boolean flag indicating whether we're storing
-// objects of a class. More on that below.
+/**
+ * T is the type of the element we're storing, or the name of the
+ * class if we're storing objects as elements. 
+ *
+ * elements_are_objects is a boolean flag indicating whether we're storing
+ * objects of a class. More on that below.
+ */
 ArrayMetaclass.template = function(T, elements_are_objects = false) { 
   // The name of the class that will be generated from this template
   var ElementArray = ArrayMetaclass.instance_name(T)
-  // We're doing some funny stuff here so I'll explain. I want to have this Array
-  // work if I'm storing primitive types AND if I'm storing objects of a class.
-  // So I have this boolean parameter elements_are_objects that the caller
-  // of defineMetaclass can use to say if this array is storing objects or not.
+  
   // If we're storing objects, internally we'll store a pointer to the object
   // type, and inside Destroy we'll iterate through them and call
-  // ElementType_Destroy on each of them to clean up the memory. This assumes
-  // that the Array takes ownership of the memory for these objects, which is a
-  // choice I'm making for demonstrative purposes.
-
+  // ElementType_Destroy on each of them to clean up the memory.
   if (elements_are_objects) {
     var ElementType = mt.Ptr(T)
     var ElementClass = T
