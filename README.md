@@ -484,10 +484,6 @@ defineMetaclass = function(obj) {
 Yes, my friend, take a looksie at the usage of such devices and marvel:
 
 ```c
-// Wouldn't necessary if we included it in package.js.dna, but this is just an
-// example of how to include other files
-./!include("util.js.dna")
-
 // An object to be passed to "defineMetaclass"
 var ArrayMetaclass = {
   // This will add Array to a global variable 'mc' (short for metaclass) so

@@ -1,5 +1,5 @@
 
-// Wouldn't necessary if we included it in package.js.dna, but this is just an
+// Wouldn't be necessary if we included it in package.js.dna, but this is just an
 // example of how to include other files
 ./!include("util.js.dna")
 
