@@ -102,6 +102,8 @@ you don't feel like doing that right now, just know that lines preceded with a
 dot ('.') get sent to a file, with macros being JavaScript variables or
 functions surrounded by '@{}' that get inserted in-line.
 
+All of the below examples can be found in full in the [examples](https://www.github.com/saltzm/cgen/examples) directory.
+
 ## Using the lowest level interface
 
 Here's an example of the use of the raw interface (spoiler alert: we can make this less verbose later) to implement a basic array class for integers:
@@ -189,7 +191,6 @@ defineFunction({
   name: "IntArray_GetSize",
   module: "IntArray",
   visibility: "public",
-  compiler_directives: ["inline"],
   inp: { self: mt.Ptr(t.IntArray) },
   out: t.Size, 
   def: () => {
@@ -202,7 +203,6 @@ defineFunction({
   name: "IntArray_Get",
   module: "IntArray",
   visibility: "public",
-  compiler_directives: ["inline"],
   inp: { self: mt.Ptr(t.IntArray), idx: t.Size },
   out: t.Int, 
   def: () => {
@@ -216,7 +216,6 @@ defineFunction({
   name: "IntArray_Set",
   module: "IntArray",
   visibility: "public",
-  compiler_directives: ["inline"],
   inp: { self: mt.Ptr(t.IntArray), idx: t.Size, val : t.Int },
   out: t.Nothing, 
   def: () => {
@@ -745,9 +744,6 @@ TestObjArray.tests = {
 // And define the class
 defineClass(TestObjArray)
 ```
-
-See the [examples](https://www.github.com/saltzm/cgen/examples) for these
-examples in full.
 
 # Closing thoughts
 
