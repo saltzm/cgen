@@ -681,7 +681,7 @@ defineType({name: "TestObj", ctype: "TestObj"})
 
 // This object contains a pointer to an int. On destruction it sets the value
 // it points to to 0. This way we can tell from the outside if it's destructor
-// is run
+// is run.
 defineClass({
   name: "TestObj",
   metadata: {
