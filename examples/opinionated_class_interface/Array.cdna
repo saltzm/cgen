@@ -82,19 +82,18 @@ if (elements_are_objects) {
 .         @{ElementClass}_Destroy(&(self->data[i]));
 .       }
 }
-
 .       free(self->data);
       }
     },
     GetSize: {
-      inp: { },
+      inp: {},
       out: t.Size,
       def: () => {
 .       return self->size;
       }
     },
     Get: {
-      inp: { self: mt.Ptr(ElementArray), idx: t.Size },
+      inp: { idx: t.Size },
       out: ElementType, 
       def: () => {
 .       assert(idx < self->size);
@@ -102,7 +101,7 @@ if (elements_are_objects) {
       }
     },
     Set: {
-      inp: { self: mt.Ptr(ElementArray), idx: t.Size, val: ElementType },
+      inp: { idx: t.Size, val: ElementType },
       out: t.Nothing, 
       def: () => {
 .       assert(idx < self->size);
