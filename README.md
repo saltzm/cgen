@@ -559,7 +559,7 @@ struct
 IntArray { 
     int size;
     int* data;
-    int ref_count;
+    int ref_count; // YAY!
 };
 
 IntArray*
