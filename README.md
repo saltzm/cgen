@@ -6,7 +6,7 @@ At its finest, cgen is a tool that lets you build higher and higher level abstra
 
 [Jump to examples](#tutorial)
 
-[Jump to the cooler example](#building-a-class-abstraction)
+[Jump to the cooler example](#getting-more-opinionated-with-our-class-design)
 
 # Why?
 C++ template metaprogramming is Turing complete... But would you ever really want to write a whole program in it?
