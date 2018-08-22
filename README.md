@@ -919,16 +919,21 @@ defineType({name: TestObjArray.name, ctype: TestObjArray.name})
 defineClass(TestObjArray)
 ```
 
+Instead of having a boolean parameter we could also just have a global variable
+'cl' or something that we can use to check if a given type is a class. We could
+also just have separate PrimitiveArray and ObjectArray metaclasses.
+
 # Closing thoughts
 
-What I find really cool is that to build the raw interface took only about 200 lines of JavaScript (with the help of ribosome), and then building a layer on top of it (completely separate!) to implement the above class abstraction (plus templated classes) only took an extra 100 or so lines of JavaScript! 
+What I find really cool is that to build the raw interface took only about 200 lines of JavaScript (with the help of ribosome), and then building a layer on top of it (completely separate!) to implement the above class abstractions (plus templated classes) only took an extra 150 or so lines of JavaScript! 
 
-If I wanted to implement a way to enforce inheriting interfaces described by a JSON object (I don't, yet), it would probably only be an additional 50 lines or so. Inheritance of fields in a struct, or actual function definitions? Easy. Want to do make all of your classes add a reference count to their struct and have their destructors always check the reference count before actually freeing memory? Easy. Enforcing a consistent style across files becomes much easier.
+If I wanted to implement a way to enforce inheriting interfaces described by a JSON object (I don't, yet), it would probably only be an additional 50 lines or so. Inheritance of fields in a struct, or actual function definitions? Easy. Enforcing a consistent style across files in general becomes much easier.
 
 Another nice thing is that if you don't like writing raw JSON like this, it's fairly easy to create your own file format (or use an existing format like YAML) and convert it to JSON before running the generator. Building extra tooling around it shouldn't be difficult either.
 
 # Future work
 * Improving Makefile generation or switching to another build tool
+* Better integration with external projects
 * Building up a library of models and utilities
 * Experimenting with alternate file formats
 * Porting cgen to use the ruby version of ribosome (for ruby enthusiasts)
