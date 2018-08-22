@@ -654,10 +654,9 @@ var ArrayMetaclass = {
 }
 
 /**
- *  T is the type of the element we're storing, or the name of the
- *  class if we're storing objects as elements. 
+ *  T is the type of the element we're storing 
  */
-ArrayMetaclass.template = function(T, elements_are_objects = false) { 
+ArrayMetaclass.template = function(T) { 
   // The name of the class that will be generated from this template
   var ElementArray = ArrayMetaclass.instance_name(T)
 
