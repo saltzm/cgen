@@ -501,7 +501,7 @@ defineClass({
       }
     },
     GetSize: {
-      inp: { },
+      inp: {}, // self will be defined as a param behind the scenes
       out: t.Size,
       def: () => {
 .       return self->size;
