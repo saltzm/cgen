@@ -578,7 +578,7 @@ IntArray_Create(int size, int init_value) {
 }
 
 void
-IntArray_Destroy(IntArray* *  self_ptr) {
+IntArray_Destroy(IntArray**  self_ptr) {
     assert(self_ptr);
     assert(*self_ptr);
     IntArray* self = *self_ptr;
