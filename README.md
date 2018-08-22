@@ -455,6 +455,23 @@ defineClass({
 
 This generates the files IntArray.h/c, IntArrayTest.h/c, and a makefile with a target for building all modules and a target for running the tests (`make test`).
 
+## Getting more opinionated with our class design
+
+The above example (and the corresponding examples in examples/class_interface) gives a good example of a basic class abstraction. However, there are a few more things that we could make our class abstraction do for us. 
+
+First, behind the scenes, the generator for the above class abstraction checks that functions called Create/Destroy exist, and that Create returns a pointer to the class type and that Destroy takes in a pointer to a pointer of the class type and returns void. If I'm going to enforce this anyway, I might as well not require the user to type those signatures in every time. 
+
+Second, we have to include a pointer to self as the first input parameter of every member function. We can remove that and have it added behind the scenes. Yay for less typing!
+
+There's also some things in the constructor that we'll need to do for every class we write - allocate memory for the object itself, assert that exists, and return self. Similarly for the destructor. 
+
+And, while we're add it, what if we want every object of all of our classes to have a reference count, and then have the destructor decrement the refcount before freeing memory, and then define a function IncRefCount to increment the refcount? Let's do it. 
+
+This is the result: 
+
+```c
+```
+
 ## Templated Types
 
 "But wait! How can we implement containers that are GENERIC?! Surely it must be nigh
@@ -509,11 +526,6 @@ ArrayMetaclass.template = function(T) {
     data: mt.Ptr(T)
   },
   metadata: {
-    // If we use this array to contain 'objects', we'll need to modify this
-    // a smidge to add the include. This could be acheived with a boolean flag
-    // 'is_object' that could be passed to the function and checked here, 
-    // or we could have one class for primitive arrays (like this one) and
-    // another for objects
     project_deps: [],
     external_deps: ["assert", "stdio", "stdlib"],
     external_libs: []
@@ -587,6 +599,8 @@ TestArray.tests = {
 .   DoubleArray_Destroy(&arr);
   }
 }
+
+defineClass(TestObjArray)
 ```
 
 But what if we want our Array to also be able to hold objects and own their memory (i.e. destroy the objects it contains when it's destroyed)? We can modify the above as follows:
