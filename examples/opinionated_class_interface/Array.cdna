@@ -13,13 +13,13 @@ var ArrayMetaclass = {
   instance_name: function(T) { return capitalize(T) + "Array" }
 }
 
-// You could just define this in the object above but I'd prefer less
-// indentation: 
-
-// T is the type of the element we're storing, or the name of the
-// class if we're storing objects as elements. 
-// elements_are_objects is a boolean flag indicating whether we're storing
-// objects of a class. More on that below.
+/**
+ *  T is the type of the element we're storing, or the name of the
+ *  class if we're storing objects as elements. 
+ * 
+ *  elements_are_objects is a boolean flag indicating whether we're storing
+ *  objects of a class. More on that below.
+ */
 ArrayMetaclass.template = function(T, elements_are_objects = false) { 
   // The name of the class that will be generated from this template
   var ElementArray = ArrayMetaclass.instance_name(T)
@@ -29,10 +29,9 @@ ArrayMetaclass.template = function(T, elements_are_objects = false) {
   // of defineMetaclass can use to say if this array is storing objects or not.
   // If we're storing objects, internally we'll store a pointer to the object
   // type, and inside Destroy we'll iterate through them and call
-  // ElementType_Destroy on each of them to clean up the memory. This assumes
-  // that the Array takes ownership of the memory for these objects, which is a
-  // choice I'm making for demonstrative purposes.
-
+  // ElementType_Destroy on each of them to clean up the memory. Since our
+  // objects are all refcounted, and we increment the refcount when we add an
+  // element to the array, this should be fine! 
   if (elements_are_objects) {
     var ElementType = mt.Ptr(T)
     var ElementClass = T
@@ -117,7 +116,6 @@ if (elements_are_objects) {
   // We can't really define tests
   // in the Array metaclass since we don't know necessarily how to e.g. initialize
   // elements without knowing what their type will be.
-
   tests: {}
 }}
 
@@ -217,7 +215,6 @@ TestObjArray.tests = {
 .   assert(test_int == 42);
 .
 .   TestObj_Destroy(&test_obj);
-
   },
 }
 
