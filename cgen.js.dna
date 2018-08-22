@@ -111,7 +111,7 @@ var writeFunctionToOutput = function(func_obj, is_header) {
 ./+;
     } else {
 ./+ {
-.    @{func_obj.def()};
+.    @{func_obj.def()}
 .}
     }
 }

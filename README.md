@@ -470,6 +470,149 @@ And, while we're add it, what if we want every object of all of our classes to h
 This is the result: 
 
 ```c
+defineClass({
+  name: "IntArray", // This will define a module called IntArray for us
+  struct: { // This will be called IntArray and will be private
+    // The size of the array
+    size: t.Size,
+    // The data in the array
+    data: mt.Ptr(t.Int)
+  },
+  metadata: {
+    project_deps: [],
+    external_deps: ["assert", "stdio", "stdlib"],
+    external_libs: []
+  },
+  api: {
+    Create: {
+      inp: { size: t.Size, init_value: t.Int },
+      def: () => {
+.       self->size = size;
+.       self->data = malloc(self->size * sizeof(int));
+.       assert(self->data);
+.       for (size_t i = 0; i < self->size; ++i) {
+.         self->data[i] = init_value;
+.       }
+      }
+    },
+    Destroy: {
+      def: () => {
+.       free(self->data);
+      }
+    },
+    GetSize: {
+      inp: { },
+      out: t.Size,
+      def: () => {
+.       return self->size;
+      }
+    },
+    Get: {
+      inp: { idx: t.Size },
+      out: t.Int, 
+      def: () => {
+.       assert(idx < self->size);
+.       return self->data[idx];
+      }
+    },
+    Set: {
+      inp: { idx: t.Size, val: t.Int },
+      out: t.Nothing, 
+      def: () => {
+.       assert(idx < self->size);
+.       self->data[idx] = val;
+      }
+    }
+  },
+  tests: {
+    "IntArray_Create creates an array with the correct size": () => {
+.     size_t size = 3;
+.     int init_val = 0;
+.     IntArray* arr = IntArray_Create(size, init_val);
+.     assert(IntArray_GetSize(arr) == size);
+.     IntArray_Destroy(&arr);
+    },
+    "IntArray_Create correctly initializes all values": () => {
+.     size_t size = 3;
+.     int init_val = 0;
+.     IntArray* arr = IntArray_Create(size, init_val);
+.     for (size_t i = 0; i < IntArray_GetSize(arr); ++i) {
+.       assert(IntArray_Get(arr, i) == 0);
+.     }
+.     IntArray_Destroy(&arr);
+    }
+  }
+})
+```
+
+And let's check out some generated code for once (comments added post
+generation for demonstrative purposes):
+
+```c
+#include "IntArray.h"
+
+#include "assert.h"
+#include "stdio.h"
+#include "stdlib.h"
+
+struct 
+IntArray { 
+    int size;
+    int* data;
+    int ref_count;
+};
+
+IntArray*
+IntArray_Create(int size, int init_value) {
+    // Check out all this stuff that was automatically added!
+    IntArray* self = malloc(sizeof(IntArray));
+    assert(self);
+    self->ref_count = 1;
+    self->size = size;
+    self->data = malloc(self->size * sizeof(int));
+    assert(self->data);
+    for (size_t i = 0; i < self->size; ++i) {
+      self->data[i] = init_value;
+    }
+    return self;
+}
+
+void
+IntArray_Destroy(IntArray* *  self_ptr) {
+    assert(self_ptr);
+    assert(*self_ptr);
+    IntArray* self = *self_ptr;
+    // Come on... This is cool, right??
+    self->ref_count--;
+    if (self->ref_count == 0) {
+      free(self->data);
+      free(self);
+      *self_ptr = NULL;
+    }
+}
+
+int
+IntArray_GetSize(IntArray*  self) {
+    return self->size;
+}
+
+int
+IntArray_Get(IntArray*  self, int idx) {
+    assert(idx < self->size);
+    return self->data[idx];
+}
+
+void
+IntArray_Set(IntArray*  self, int idx, int val) {
+    assert(idx < self->size);
+    self->data[idx] = val;
+}
+
+// HERE COMES THE DYNAMITE
+void
+IntArray_IncRefCount(IntArray*  self) {
+    self->ref_count++;
+}
 ```
 
 ## Templated Types
