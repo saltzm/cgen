@@ -18,7 +18,7 @@ $ cd cgen_hello_world
 $ wget https://raw.githubusercontent.com/saltzm/cgen/master/cgen.js.dna 
 ```
 
-Create a file called HelloWorld.cdna in the cgen\_hello\_world directory you
+Create a file called `HelloWorld.cdna` in the `cgen\_hello\_world` directory you
 just created and copy and paste the following:
 ```c
 defineModule({
@@ -54,7 +54,7 @@ defineFunction({
 })
 ```
 
-And create a file called 'package.js.dna' in the same directory with the following line:
+And create a file called `package.js.dna` in the same directory with the following line:
 ```
 ./!include('HelloWorld.cdna')
 ```
@@ -62,7 +62,7 @@ And create a file called 'package.js.dna' in the same directory with the followi
 To generate the C code and Makefile, run the following command (assuming an alias 'ribosome' to run 'node ribosome.js' from wherever it's located):
 ```bash
 $ # Assuming an alias 'ribosome' to run 'node ribosome.js' from wherever it's located
-$ ribosome cgen.js
+$ ribosome cgen.js.dna
 ```
 
 And then to run the code:
