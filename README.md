@@ -97,6 +97,9 @@ int main() {
 }
 ```
 
+If you're unconvinced that this is useful, or concerned that this is too verbose, check out 
+[an example of using cgen to write classes in C](#getting-more-opinionated-with-our-class-design) for a more powerful example.
+
 # Motivation
 C++ template metaprogramming is Turing complete... But would you ever really want to write a whole program in it?
 
