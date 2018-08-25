@@ -437,7 +437,7 @@ defineFunction({
 
 See the [quick start](#quick-start) for instructions on running cgen. This section describes the project structure a bit more.
 
-First, the `package.js.dna` file is used to tell cgen which files should be included in the project. The order matters - so if a file requires something defined in another file, be sure to order them correctly.
+First, the `package.js.dna` file is used to tell cgen which files should be included in the project. The order matters, so if a file requires something defined in another file, be sure to order them correctly.
 
 Next, I use the convention of using the `.cdna` extension with camel-case for files containing definitions of things that will get turned into C code, and `.js.dna` with snake-case for files containing code for taking models and generating C code. 
 
