@@ -702,9 +702,10 @@ defineMetatype({
           }
         }
       },
-      // We can't really define tests
-      // in the Array metaclass since we don't know necessarily how to e.g. initialize
-      // elements without knowing what their type will be.
+      // We can't really define tests in the Array metaclass since we don't know 
+      // necessarily how to e.g. initialize elements without knowing what their
+      // type will be. We'll have to create a separate class for testing (see
+      // below).
       tests: {}
     })
     return ElementArray
