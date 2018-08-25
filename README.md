@@ -10,7 +10,7 @@ At its finest, cgen is a tool that lets you build higher and higher level abstra
 
 # Quick Start
 
-To get started with cgen, first install the JavaScript version of [ribosome](http://sustrik.github.io/ribosome/downloaad.html). Next:
+To get started with cgen, first install the JavaScript version of [ribosome](http://sustrik.github.io/ribosome/download.html). Next:
 
 ```bash
 $ mkdir cgen_hello_world
