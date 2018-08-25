@@ -182,7 +182,7 @@ From the perspective of cgen, a C program can be divided into a few key componen
   * **module**: The module the constant belongs to
   * **visibility**: 'public'/'private'
   * **value**: The value of the constant.
-  
+
 # Tutorial
 
 In order to fully understand everything, it would be helpful to read or at
@@ -435,18 +435,15 @@ defineFunction({
 
 ## Running cgen
 
-In order to run cgen you'll first need to download the JavaScript version of [ribosome](http://sustrik.github.io/ribosome/).
+See the [quick start](#quick-start) for instructions on running cgen. This section describes the project structure a bit more.
 
-Create a file `package.js.dna` in the same directory as ribosome.js and cgen.js.dna containing the following: 
-```
-./!include("IntArray.js.dna")
-```
-and run 
-```
-node ribosome.js cgen.js.dna
-```
+First, the `package.js.dna` file is used to tell cgen which files should be included in the project. The order matters - so if a file requires something defined in another file, be sure to order them correctly.
 
-What do we get as a result? A header and implementation file for each module, and a makefile with targets to build everything and run the tests. The makefile generation currently is pretty rudimentary but it works.
+Next, I use the convention of using the `.cdna` extension with camel-case for files containing definitions of things that will get turned into C code, and `.js.dna` with snake-case for files containing code for taking models and generating C code. 
+
+With all of your `.cdna` and `.js.dna` files listed in `package.js.dna`, what happens when you run cgen?
+
+First, directories called `src` and `build` are created if they don't exist. Then a header and implementation file for each module is created in `src`, and a makefile with targets to build everything is created in the root directory of the project. Executables have the same name as their module and are placed in the `build` directory. The makefile generation currently is pretty rudimentary and needs a lot of work, but it works for the things I've used it for.
 
 ## Building a class abstraction
 
