@@ -27,11 +27,13 @@ var defineClassRaw = function(class_obj) {
         data: class_obj.struct
     })
 
-  // Require constructor and destructor
-    assert(class_obj.api.hasOwnProperty("Create"), 
-        "Class '" + class_name + "' must define 'Create' function")
-    assert(class_obj.api.hasOwnProperty("Create"), 
-        "Class '" + class_name + "' must define 'Destroy' function")
+    // Require constructor and destructor to exist, or neither
+    assert((class_obj.api.hasOwnProperty("Create") && 
+            class_obj.api.hasOwnProperty("Destroy")) || 
+            (!class_obj.api.hasOwnProperty("Create") &&
+             !class_obj.api.hasOwnProperty("Destroy")),
+      "Class '" + class_name + 
+      "' must define both Create and Destroy functions or neither")
 
     Object.entries(class_obj.api).forEach(([func_name, func_props]) => {
       var full_func_name = class_name + "_" + func_name
@@ -41,6 +43,7 @@ var defineClassRaw = function(class_obj) {
               "Function 'Create' in class '" + class_name + "' must return a " + 
               "pointer to an object of the class")
       } else if (func_name == "Destroy") {
+          console.log(func_props)
           // Enforce destructor takes a Class ** and returns void
           assert(Object.keys(func_props.inp).length == 1 && 
                 func_props.inp.hasOwnProperty("self_ptr") &&
@@ -101,6 +104,18 @@ var defineClassRaw = function(class_obj) {
     })
 }
 
+// Hacky way to get function body as a string
+Function.prototype.getBody = function() {
+  // Get content between first { and last }
+  var m = this.toString().match(/\{([\s\S]*)\}/m)[1]
+  // Strip comments
+  return m.replace(/^\s*\/\/.*$/mg,'')
+}
+
+function functionIsEmpty(f) {
+  return f.getBody().trim().length == 0
+}
+
 defineClass = function(obj) {
   // TODO: Make sure ref_count wasn't defined already
   // Add reference count
@@ -115,34 +130,43 @@ defineClass = function(obj) {
     }
   }
 
-  obj.api.Create.out = mt.Ptr(obj.name)
-  // Make a copy to avoid weird recursion issues
-  var create_def = obj.api.Create.def
-  var class_name = obj.name
-  obj.api.Create.def = function() {
-.   @{mt.Ptr(obj.name)} self = malloc(sizeof(@{obj.name}));
-.   assert(self);
-.   self->ref_count = 1;
-.   @{create_def()}
-.   return self;
-  }
+  if (obj.api.hasOwnProperty("Create") && obj.api.hasOwnProperty("Destroy")) {
+    obj.api.Create.out = mt.Ptr(obj.name)
+    // Make a copy to avoid weird recursion issues
+    var create_def = obj.api.Create.def
+    var class_name = obj.name
+    assert(!functionIsEmpty(create_def), 
+      "Create function definition must be non-empty for class '" + obj.name + "'")
+    obj.api.Create.def = function() {
+.     @{mt.Ptr(obj.name)} self = malloc(sizeof(@{obj.name}));
+.     assert(self);
+.     self->ref_count = 1;
+.     @{create_def()}
+.     return self;
+    }
 
-  obj.api.Destroy.inp = { self_ptr: mt.Ptr(mt.Ptr(t[obj.name])) }
-  obj.api.Destroy.out = t.Nothing 
 
-  // Make a copy to avoid weird recursion issues
-  var destroy_def = obj.api.Destroy.def
+    assert(t.hasOwnProperty(obj.name), 
+      "Must define type '" + obj.name + "' before referencing it")
+    obj.api.Destroy.inp = { self_ptr: mt.Ptr(mt.Ptr(t[obj.name])) }
+    obj.api.Destroy.out = t.Nothing 
 
-  obj.api.Destroy.def = function() {
-.   assert(self_ptr);
-.   assert(*self_ptr);
-.   @{mt.Ptr(obj.name)} self = *self_ptr;
-.   self->ref_count--;
-.   if (self->ref_count == 0) {
-.     @{destroy_def()}
-.     free(self);
-.     *self_ptr = NULL;
-.   }
+    // Make a copy to avoid weird recursion issues
+    var destroy_def = obj.api.Destroy.def
+    assert(!functionIsEmpty(destroy_def), 
+      "Destroy function definition must be non-empty for class '" + obj.name + "'")
+
+    obj.api.Destroy.def = function() {
+.     assert(self_ptr);
+.     assert(*self_ptr);
+.     @{mt.Ptr(obj.name)} self = *self_ptr;
+.     self->ref_count--;
+.     if (self->ref_count == 0) {
+.       @{destroy_def()}
+.       free(self);
+.       *self_ptr = NULL;
+.     }
+    }
   }
 
   Object.entries(obj.api).forEach(([func_name, func_props]) => {

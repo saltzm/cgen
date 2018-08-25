@@ -17,6 +17,11 @@ var dep = {}
 var modules = {}
 var main = {}
 
+function jsonEqual(a,b) {
+  console.log(JSON.stringify(a), JSON.stringify(b))
+    return JSON.stringify(a) === JSON.stringify(b);
+}
+
 // TODO also check no extra fields
 assertObjHasRequiredFields = function(obj, obj_type, required_fields) {
     required_fields.forEach(function(field) {
@@ -26,16 +31,18 @@ assertObjHasRequiredFields = function(obj, obj_type, required_fields) {
     })
 }
 
-assertObjIsUnique = function(obj_container, obj_type, obj_name) {
-    assert(!obj_container.hasOwnProperty(obj_name), 
-        "Cannot redefine " + obj_type + " '" + obj_name + "'")
+assertObjIsUnique = function(obj_container, obj_type, obj_name, obj) {
+    if (obj_container.hasOwnProperty(obj_name)) {
+      assert(jsonEqual(obj, obj_container[obj_name]), 
+          "Cannot redefine " + obj_type + " '" + obj_name + "'")
+    }
 }
 
 defineModule = function(obj) {
     var required_fields = ["name", "executable", "project_deps",
                            "external_deps", "external_libs"]
     assertObjHasRequiredFields(obj, "module", required_fields)
-    assertObjIsUnique(modules, "module", obj.name)
+    assertObjIsUnique(modules, "module", obj.name, obj)
 
     modules[obj.name] = obj
 }
@@ -43,7 +50,15 @@ defineModule = function(obj) {
 defineType = function(obj) {
     var required_fields = ["name", "ctype"]
     assertObjHasRequiredFields(obj, "type", required_fields)
-    assertObjIsUnique(t, "type", obj.name)
+
+    // The uniqueness check is a little different for types since it's the only
+    // thing where the full JSON obj isn't stored as the value in the map
+    if (t.hasOwnProperty(obj.name)) {
+      console.log(obj.ctype)
+      console.log(t[obj.name])
+      assert(obj.ctype == t[obj.name], 
+          "Cannot redefine type '" + obj.name + "'")
+    }
 
     t[obj.name] = obj.ctype
 }
@@ -51,7 +66,7 @@ defineType = function(obj) {
 defineMetatype = function(obj) {
     var required_fields = ["name", "def"]
     assertObjHasRequiredFields(obj, "metatype", required_fields)
-    assertObjIsUnique(mt, "metatype", obj.name)
+    assertObjIsUnique(mt, "metatype", obj.name, obj)
 
     mt[obj.name] = obj.def
 }
@@ -59,7 +74,7 @@ defineMetatype = function(obj) {
 defineFunction = function(obj) {
     var required_fields = ["name", "module", "visibility", "inp", "out", "def"]
     assertObjHasRequiredFields(obj, "function", required_fields)
-    assertObjIsUnique(func, "function", obj.name)
+    assertObjIsUnique(func, "function", obj.name, obj)
 
     func[obj.name] = obj
 }
@@ -67,7 +82,7 @@ defineFunction = function(obj) {
 defineStruct = function(obj) {
     var required_fields = ["name", "module", "visibility", "data"]
     assertObjHasRequiredFields(obj, "struct", required_fields)
-    assertObjIsUnique(struct, "struct", obj.name)
+    assertObjIsUnique(struct, "struct", obj.name, obj)
 
     struct[obj.name] = obj
 }
@@ -75,7 +90,7 @@ defineStruct = function(obj) {
 defineEntryPoint = function(obj) {
     var required_fields = ["name", "module"]
     assertObjHasRequiredFields(obj, "entry point", required_fields)
-    assertObjIsUnique(main, "entry point", obj.name)
+    assertObjIsUnique(main, "entry point", obj.name, obj)
 
     main[obj.name] = obj
 }
