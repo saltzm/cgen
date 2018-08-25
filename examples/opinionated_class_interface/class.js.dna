@@ -43,7 +43,6 @@ var defineClassRaw = function(class_obj) {
               "Function 'Create' in class '" + class_name + "' must return a " + 
               "pointer to an object of the class")
       } else if (func_name == "Destroy") {
-          console.log(func_props)
           // Enforce destructor takes a Class ** and returns void
           assert(Object.keys(func_props.inp).length == 1 && 
                 func_props.inp.hasOwnProperty("self_ptr") &&

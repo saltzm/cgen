@@ -18,7 +18,6 @@ var modules = {}
 var main = {}
 
 function jsonEqual(a,b) {
-  console.log(JSON.stringify(a), JSON.stringify(b))
     return JSON.stringify(a) === JSON.stringify(b);
 }
 
@@ -134,6 +133,16 @@ var writeFunctionToOutput = function(func_obj, is_header) {
 var makeHeaderGuard = function(module_name) { 
     return module_name.toUpperCase() + "_H_"
 }
+var fs = require('fs');
+
+// Create src and build directories if they don't exist
+if (!fs.existsSync("src")){
+    fs.mkdirSync("src");
+}
+
+if (!fs.existsSync("build")){
+    fs.mkdirSync("build");
+}
 
 Object.entries(modules).forEach(([module_name, props]) => {
     var header_file = "src/" + module_name + ".h"
@@ -217,6 +226,14 @@ Object.entries(main).forEach(([func_name, entry_point_obj]) => {
 ./!tabsize(4)
 
 var compileCommand = "gcc -g -Werror"
+
+// Create target to make all executables
+.all:
+Object.entries(modules).forEach(([module_name, props]) => {
+    if (props.executable) {
+./+ @{module_name}
+    }
+})
 
 Object.entries(modules).forEach(([module_name, props]) => {
 .

@@ -174,7 +174,9 @@ defineClass({
   metadata: {
     // Just by using mt.Array we're already generating files LongArray.h/c and
     // TestObjArray.h/c!
-    project_deps: [ mt.Array(t.Long), mt.Array(TestObj) ],
+    project_deps: [ mt.Array(t.Long), 
+                    t.TestObj, // Needed only for linking
+                    mt.Array(t.TestObj, true /* elements_are_objects */) ],
     external_deps: ["assert", "stdio", "stdlib"],
     external_libs: []
   },

@@ -1,0 +1,37 @@
+/**
+ * HelloWorld.cdna
+ */
+
+defineModule({
+  name: "HelloWorld",
+  executable: true, // This should be executable, yay. See entry point below.
+  project_deps: [], 
+  external_deps: ["assert", "stdio", "stdlib"],
+  external_libs: []
+})
+
+defineEntryPoint({
+  name: "Main",
+  module: "HelloWorld"
+})
+
+defineType({
+  name: "Nothing",
+  ctype: "void"
+})
+
+defineFunction({
+  name: "Main",
+  module: "HelloWorld",
+  visibility: "private",
+  inp: {},
+  out: t.Nothing, 
+  def: () => {
+    var greetings = [ "Hello", "Bonjour", "Hola" ]
+    greetings.forEach((greeting) => {
+.     printf("%s, world!\n", "@{greeting}");
+    })
+  }
+})
+
+

@@ -8,7 +8,97 @@ At its finest, cgen is a tool that lets you build higher and higher level abstra
 
 [Jump to the cooler example](#getting-more-opinionated-with-our-class-design)
 
-# Why?
+# Quick Start
+
+To get started with cgen, first install the JavaScript version of [ribosome](http://sustrik.github.io/ribosome/downloaad.html). Next:
+
+```bash
+$ mkdir cgen_hello_world
+$ cd cgen_hello_world
+$ wget https://raw.githubusercontent.com/saltzm/cgen/master/cgen.js.dna 
+```
+
+Create a file called HelloWorld.cdna in the cgen\_hello\_world directory you
+just created and copy and paste the following:
+```c
+defineModule({
+  name: "HelloWorld",
+  executable: true, // This should be executable, yay. See entry point below.
+  project_deps: [], 
+  external_deps: ["assert", "stdio", "stdlib"],
+  external_libs: []
+})
+
+defineEntryPoint({
+  name: "Main",
+  module: "HelloWorld"
+})
+
+defineType({
+  name: "Nothing",
+  ctype: "void"
+})
+
+defineFunction({
+  name: "Main",
+  module: "HelloWorld",
+  visibility: "private",
+  inp: {},
+  out: t.Nothing, 
+  def: () => {
+    var greetings = [ "Hello", "Bonjour", "Hola" ]
+    greetings.forEach((greeting) => {
+.     printf("%s, world!\n", "@{greeting}");
+    })
+  }
+})
+```
+
+And create a file called 'package.js.dna' in the same directory with the following line:
+```
+./!include('HelloWorld.cdna')
+```
+
+To generate the C code and Makefile, run the following command (assuming an alias 'ribosome' to run 'node ribosome.js' from wherever it's located):
+```bash
+$ # Assuming an alias 'ribosome' to run 'node ribosome.js' from wherever it's located
+$ ribosome cgen.js
+```
+
+And then to run the code:
+```bash
+$ make
+gcc -g -Werror -o build/HelloWorld src/HelloWorld.c
+$ ./build/HelloWorld
+Hello, world!
+Bonjour, world!
+Hola, world!
+```
+
+Inside the source directory you'll see a file HelloWorld.h (that's empty except a header guard) and HelloWorld.c: 
+
+```c
+#include "HelloWorld.h"
+
+#include "assert.h"
+#include "stdio.h"
+#include "stdlib.h"
+
+
+static
+void
+Main() {
+    printf("%s, world!\n", "Hello");
+    printf("%s, world!\n", "Bonjour");
+    printf("%s, world!\n", "Hola");
+}
+
+int main() {
+    Main();
+}
+```
+
+# Motivation
 C++ template metaprogramming is Turing complete... But would you ever really want to write a whole program in it?
 
 I've been writing almost exclusively in C++ for work since 2015. Even after having read several books about C++ best practices, API design, design patterns, and so on, I still bump into parts of the language from time to time that leave me scratching my head, rummaging through StackOverflow, and asking coworkers for help. (In the latest case, I was trying and failing to pass a move-only type into a lambda capture for a lambda being passed as a function parameter. Turns out it doesn't work with the standard library - you need something like [unique_function](https://naios.github.io/function2/).) 
