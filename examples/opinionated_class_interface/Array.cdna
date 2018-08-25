@@ -3,9 +3,19 @@
 // example of how to include other files
 ./!include("util.js.dna")
 
-// An object to be passed to "defineMetaclass"
+// Remember those metatype things we used to define the Ptr metatype? They're
+// just functions that return strings, so there's no problem also using that
+// function to, say, define an entirely new class! This way we can create new
+// classes from a template simply by using the metatype anywhere. 
 defineMetatype({
   name: "Array", 
+  /**
+   *  T is the type of the element we're storing, or the name of the
+   *  class if we're storing objects as elements. 
+   * 
+   *  elements_are_objects is a boolean flag indicating whether we're storing
+   *  objects of a class. More on that below.
+   */
   def: function(T, elements_are_objects = false) { 
     // The name of the class that will be generated from this template
     var ElementArray = capitalize(T) + "Array"
@@ -13,7 +23,7 @@ defineMetatype({
     // work if I'm storing primitive types AND if I'm storing objects of a class.
     // So I have this boolean parameter elements_are_objects that the caller
     // of defineMetaclass can use to say if this array is storing objects or not.
-    // If we're storing objects, longernally we'll store a polonger to the object
+    // If we're storing objects, longernally we'll store a pointer to the object
     // type, and inside Destroy we'll iterate through them and call
     // ElementType_Destroy on each of them to clean up the memory. Since our
     // objects are all refcounted, and we increment the refcount when we add an
@@ -53,7 +63,7 @@ defineMetatype({
 .           self->data = malloc(self->size * sizeof(@{ElementType}));
 .           assert(self->data);
 .           for (size_t i = 0; i < self->size; ++i) {
-.             // While it would be silly to pass in a polonger to an existing
+.             // While it would be silly to pass in a pointer to an existing
 .             // object as the initial value, we'll pass it to the Set path
 .             // to make sure the refcount is incremeneted enough times
 .             @{ElementArray}_Set(self, i, init_value);
@@ -162,6 +172,8 @@ defineClass({
 defineClass({
   name: "ArrayTest",
   metadata: {
+    // Just by using mt.Array we're already generating files LongArray.h/c and
+    // TestObjArray.h/c!
     project_deps: [ mt.Array(t.Long), mt.Array(TestObj) ],
     external_deps: ["assert", "stdio", "stdlib"],
     external_libs: []

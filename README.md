@@ -615,313 +615,270 @@ IntArray_IncRefCount(IntArray*  self) {
 }
 ```
 
-## Templated Types
+## Generic containers
 
 "But wait! How can we implement containers that are GENERIC?! Surely it must be nigh
 IMPOSSIBLE!"
 
 Don't worry dear reader, I have heard your voice through the ether and thus, I
-give you the magic codez for implementing templated types....!: 
-
-```js
-// Container for metaclasses
-mc = {}
-
-defineMetaclass = function(obj) {
-    assert(!mc.hasOwnProperty(obj.name), 
-        "Cannot redefine metaclass '" + obj.name + "'")
-    mc[obj.name] = obj.template
-    defineMetatype({
-        name: obj.name,
-        def: obj.instance_name
-    })
-}
-```
-
-"No! It can't be! How is it possible?"
-
-Yes, my friend, take a looksie at the usage of such devices and marvel:
+give you the magic codez for implementing generic containers....!: 
 
 ```c
-// An object to be passed to "defineMetaclass"
-var ArrayMetaclass = {
-  // This will add Array to a global variable 'mc' (short for metaclass) so
-  // that you can declare a new instance as declareClass(mc.Array(t.MyType))
+// Nothing to see here.
+```
+
+What??? No extra code required???
+
+Yes, yes. Remember those things called metatypes that we used to define mt.Ptr?
+They're just a name and a function that returns a string. It's perfectly valid
+if, from inside that function, we define a totally new class! This also means
+we can create new classes from a template simply by using the metatype
+anywhere, much as you would in C++. Check it out:
+
+```c
+defineMetatype({
   name: "Array", 
-  // This will define a metatype called Array for us so that mt.Array(t.MyType)
-  // will return "MyTypeArray"
-  instance_name: function(T) { return capitalize(T) + "Array" }
-}
+  def: function(T, elements_are_objects = false) { 
+    // The name of the class that will be generated from this template
+    var ElementArray = capitalize(T) + "Array"
+    var ElementType = T
 
-/**
- *  T is the type of the element we're storing 
- */
-ArrayMetaclass.template = function(T) { 
-  // The name of the class that will be generated from this template
-  var ElementArray = ArrayMetaclass.instance_name(T)
+    defineType({
+      name: ElementArray,
+      ctype: ElementArray
+    })
 
-  return {
-  name: ElementArray,
-  metadata: {
-    project_deps: project_deps,
-    external_deps: ["assert", "stdio", "stdlib"],
-    external_libs: []
-  },
-  struct: { 
-    // The size of the array
-    size: t.Size,
-    // The data in the array
-    data: mt.Ptr(ElementType)
-  },
-  api: {
-    Create: {
-      inp: { size: t.Size, init_value: ElementType },
-      def: () => {
-.       self->size = size;
-.       self->data = malloc(self->size * sizeof(@{ElementType}));
-.       assert(self->data);
-.       for (size_t i = 0; i < self->size; ++i) {
-.         @{ElementArray}_Set(self, i, init_value);
-.       }
-      }
-    },
-    Destroy: {
-      def: () => {
-.       free(self->data);
-      }
-    },
-    GetSize: {
-      inp: {},
-      out: t.Size,
-      def: () => {
-.       return self->size;
-      }
-    },
-    Get: {
-      inp: { idx: t.Size },
-      out: ElementType, 
-      def: () => {
-.       assert(idx < self->size);
-.       return self->data[idx];
-      }
-    },
-    Set: {
-      inp: { idx: t.Size, val: ElementType },
-      out: t.Nothing, 
-      def: () => {
-.       assert(idx < self->size);
-.       self->data[idx] = val;
-      }
-    }
-  },
-  // We can't really define tests
-  // in the Array metaclass since we don't know necessarily how to e.g. initialize
-  // elements without knowing what their type will be.
-  tests: {}
-}}
-
-// Actually define the thing so we can see it from other places
-defineMetaclass(ArrayMetaclass)
-```
-
-Okay, that's all well and good, but how is it *used*? Let's look at the tests:
-```c
-// Let's make an array of doubles just for testing. 
-TestArray = mc.Array(t.Double)
-TestArray.tests = {
-  "DoubleArray_Create creates an array with the correct size": () => {
-.   size_t size = 3;
-.   int init_val = 0;
-.   DoubleArray* arr = DoubleArray_Create(size, init_val);
-.   assert(DoubleArray_GetSize(arr) == size);
-.   DoubleArray_Destroy(&arr);
-  },
-  "DoubleArray_Create correctly initializes all values": () => {
-.   size_t size = 3;
-.   int init_val = 0;
-.   DoubleArray* arr = DoubleArray_Create(size, init_val);
-.   for (size_t i = 0; i < DoubleArray_GetSize(arr); ++i) {
-.     assert(DoubleArray_Get(arr, i) == 0);
-.   }
-.   DoubleArray_Destroy(&arr);
+    defineClass({
+      name: ElementArray,
+      metadata: {
+        project_deps: [],
+        external_deps: ["assert", "stdio", "stdlib"],
+        external_libs: []
+      },
+      struct: { 
+        // The size of the array
+        size: t.Size,
+        // The data in the array
+        data: mt.Ptr(ElementType)
+      },
+      api: {
+        Create: {
+          inp: { size: t.Size, init_value: ElementType },
+          def: () => {
+.           self->size = size;
+.           self->data = malloc(self->size * sizeof(@{ElementType}));
+.           assert(self->data);
+.           for (size_t i = 0; i < self->size; ++i) {
+.             @{ElementArray}_Set(self, i, init_value);
+.           }
+          }
+        },
+        Destroy: {
+          def: () => {
+.           free(self->data);
+          }
+        },
+        GetSize: {
+          inp: {},
+          out: t.Size,
+          def: () => {
+.           return self->size;
+          }
+        },
+        Get: {
+          inp: { idx: t.Size },
+          out: ElementType, 
+          def: () => {
+.           assert(idx < self->size);
+.           return self->data[idx];
+          }
+        },
+        Set: {
+          inp: { idx: t.Size, val: ElementType },
+          out: t.Nothing, 
+          def: () => {
+.           assert(idx < self->size);
+.           self->data[idx] = val;
+          }
+        }
+      },
+      // We can't really define tests
+      // in the Array metaclass since we don't know necessarily how to e.g. initialize
+      // elements without knowing what their type will be.
+      tests: {}
+    })
+    return ElementArray
   }
-}
-
-defineClass(TestObjArray)
+})
 ```
 
 But what if we want our Array to also be able to hold objects and destroy the objects it contains when it's destroyed? This will also let us see the refcounting in action. We can modify the above as follows:
 
 ```c
-/**
- *  T is the type of the element we're storing, or the name of the
- *  class if we're storing objects as elements. 
- * 
- *  elements_are_objects is a boolean flag indicating whether we're storing
- *  objects of a class. More on that below.
- */
-ArrayMetaclass.template = function(T, elements_are_objects = false) { 
-  // The name of the class that will be generated from this template
-  var ElementArray = ArrayMetaclass.instance_name(T)
+defineMetatype({
+  name: "Array", 
+  def: function(T, elements_are_objects = false) { 
+    // The name of the class that will be generated from this template
+    var ElementArray = capitalize(T) + "Array"
+    // We're doing some funny stuff here so I'll explain. I want to have this Array
+    // work if I'm storing primitive types AND if I'm storing objects of a class.
+    // So I have this boolean parameter elements_are_objects that the caller
+    // of defineMetaclass can use to say if this array is storing objects or not.
+    // If we're storing objects, longernally we'll store a pointer to the object
+    // type, and inside Destroy we'll iterate through them and call
+    // ElementType_Destroy on each of them to clean up the memory. Since our
+    // objects are all refcounted, and we increment the refcount when we add an
+    // element to the array, this should be fine! 
+    if (elements_are_objects) {
+      var ElementType = mt.Ptr(T)
+      var ElementClass = T
+      var project_deps = [ ElementClass ]
+    } else {
+      var ElementType = T
+      var project_deps = []
+    }
 
-  // If we're storing objects, internally we'll store a pointer to the object
-  // type, and inside Destroy we'll iterate through them and call
-  // ElementType_Destroy on each of them. Since our objects are all refcounted,
-  // and we increment the refcount when we add an element to the array, this
-  // should be fine! 
-  if (elements_are_objects) {
-    var ElementType = mt.Ptr(T)
-    var ElementClass = T
-    // We need to include the header containing the definition of the class
-    var project_deps = [ ElementClass ]
-  } else {
-    var ElementType = T
-    var project_deps = []
+    defineType({
+      name: ElementArray,
+      ctype: ElementArray
+    })
+
+    defineClass({
+      name: ElementArray,
+      metadata: {
+        project_deps: project_deps,
+        external_deps: ["assert", "stdio", "stdlib"],
+        external_libs: []
+      },
+      struct: { 
+        // The size of the array
+        size: t.Size,
+        // The data in the array
+        data: mt.Ptr(ElementType)
+      },
+      api: {
+        Create: {
+          inp: { size: t.Size, init_value: ElementType },
+          def: () => {
+.           self->size = size;
+.           self->data = malloc(self->size * sizeof(@{ElementType}));
+.           assert(self->data);
+.           for (size_t i = 0; i < self->size; ++i) {
+.             // While it would be silly to pass in a pointer to an existing
+.             // object as the initial value, we'll pass it to the Set path
+.             // to make sure the refcount is incremeneted enough times
+.             @{ElementArray}_Set(self, i, init_value);
+.           }
+          }
+        },
+        Destroy: {
+          def: () => {
+            // If the elements are objects we want to destroy them all. For our
+            // non-object arrays (like arrays of primitive types) this code won't
+            // be generated!
+            if (elements_are_objects) {
+.             for (long i = 0; i < self->size; ++i) {
+.               // We can do this because our class abstraction enforces
+.               // the same destructor API across all objects.
+.               @{ElementClass}_Destroy(&(self->data[i]));
+.             }
+            }
+.           free(self->data);
+          }
+        },
+        /* ... */
+        Set: {
+          inp: { idx: t.Size, val: ElementType },
+          out: t.Nothing, 
+          def: () => {
+.           assert(idx < self->size);
+            if (elements_are_objects) {
+.             if (val) {
+.               @{ElementClass}_IncRefCount(val);
+.             }
+            }
+.           self->data[idx] = val;
+          }
+        }
+      },
+      tests: {}
+    })
+    return ElementArray
   }
+})
+```
 
-  return {
-  name: ElementArray,
+Okay, that's all well and good, but how is it *used*? Let's look at the tests:
+
+```c
+// See the examples/opinionated_class_interface directory for the full code,
+// including the definition of TestObj
+defineClass({
+  name: "ArrayTest",
   metadata: {
-    project_deps: project_deps,
+    // Just by using mt.Array we're already generating files LongArray.h/c and
+    // TestObjArray.h/c!
+    project_deps: [ mt.Array(t.Long), mt.Array(TestObj) ],
     external_deps: ["assert", "stdio", "stdlib"],
     external_libs: []
   },
-  struct: { 
-    // The size of the array
-    size: t.Size,
-    // The data in the array
-    data: mt.Ptr(ElementType)
-  },
-  api: {
-    Create: {
-      inp: { size: t.Size, init_value: ElementType },
-      def: () => {
-.       self->size = size;
-.       self->data = malloc(self->size * sizeof(@{ElementType}));
-.       assert(self->data);
-.       for (size_t i = 0; i < self->size; ++i) {
-.         // While it would be silly to pass in a pointer to an existing
-.         // object as the initial value, we'll pass it to the Set path
-.         // to make sure the refcount is incremeneted enough times
-.         @{ElementArray}_Set(self, i, init_value);
-.       }
-      }
+  struct: {},
+  api: {},
+  tests: {
+    "LongArray_Create creates an array with the correct size": () => {
+.     size_t size = 3;
+.     long init_val = 0;
+.     LongArray* arr = LongArray_Create(size, init_val);
+.     assert(LongArray_GetSize(arr) == size);
+.     LongArray_Destroy(&arr);
     },
-    Destroy: {
-      def: () => {
-        // If the elements are objects we want to destroy them all. For our
-        // non-object arrays (like arrays of primitive types) this code won't
-        // be generated!
-if (elements_are_objects) {
-.       for (int i = 0; i < self->size; ++i) {
-.         // We can do this because our class abstraction enforces
-.         // the same destructor API across all objects.
-.         @{ElementClass}_Destroy(&(self->data[i]));
-.       }
-}
-.       free(self->data);
-      }
+    "LongArray_Create correctly initializes all values": () => {
+.     size_t size = 3;
+.     long init_val = 0;
+.     LongArray* arr = LongArray_Create(size, init_val);
+.     for (size_t i = 0; i < LongArray_GetSize(arr); ++i) {
+.       assert(LongArray_Get(arr, i) == 0);
+.     }
+.     LongArray_Destroy(&arr);
     },
-
-    ...
-
-    Set: {
-      inp: { idx: t.Size, val: ElementType },
-      out: t.Nothing, 
-      def: () => {
-.       assert(idx < self->size);
-if (elements_are_objects) {
-.       if (val) {
-.         @{ElementClass}_IncRefCount(val);
-.       }
-}
-.       self->data[idx] = val;
-      }
+    "TestObjArray_Destroy calls destructor of TestObj": () => {
+.     long size = 1;
+.     TestObj* init_val = NULL;
+.     TestObjArray* arr = TestObjArray_Create(size, init_val);
+.
+.     long test_long = 42;
+.     TestObj* test_obj = TestObj_Create(&test_long);
+.
+.     TestObjArray_Set(arr, 0, test_obj);
+.     // Since we're refcounting, we need to destroy this first
+.     TestObj_Destroy(&test_obj);
+.     TestObjArray_Destroy(&arr);
+.     // If we correctly destroyed the TestObj in the destructor, 
+.     // this long should be set to 0
+.     assert(test_long == 0);
+    }, 
+    "TestObjArray_Set increments refcount": () => {
+.     long size = 1;
+.     TestObj* init_val = NULL;
+.     TestObjArray* arr = TestObjArray_Create(size, init_val);
+.
+.     long test_long = 42;
+.     TestObj* test_obj = TestObj_Create(&test_long);
+.
+.     TestObjArray_Set(arr, 0, test_obj);
+.     TestObjArray_Destroy(&arr);
+.     // Refcount should be non-zero so this shouldn't have been affected
+.     assert(test_long == 42);
+.
+.     TestObj_Destroy(&test_obj);
     }
-  },
-  tests: {}
-}}
-
-defineMetaclass(ArrayMetaclass)
-```
-
-And we can test it using objects as follows: 
-```c
-defineType({name: "TestObj", ctype: "TestObj"})
-
-// Create an object that contains a pointer to an int, so we can signal
-// that we were destructed by setting the int to 0 in the destructor
-defineClass({
-  name: "TestObj",
-  metadata: { /* ... */ },
-  struct: { 
-    // A pointer to an int we'll use to see if we correctly
-    // destructed
-    my_int: mt.Ptr(t.Int)
-  },
-  api: {
-    Create: {
-      inp: { my_int: mt.Ptr(t.Int) },
-      def: () => {
-.       assert(self);
-.       self->my_int = my_int;
-      }
-    },
-    Destroy: {
-      def: () => {
-.       // Zero out element so we can tell from the outside that
-.       // the object was destructed
-.       *(self->my_int) = 0;
-      }
-    }
-  }, 
-  tests: { /* Nah */}
+  }
 })
-
-// Let's make an array of TestObjs, being sure to pass elements_are_objects =
-// true
-TestObjArray = mc.Array(t.TestObj, true /*elements_are_objects*/)
-TestObjArray.tests = {
-  "TestObjArray_Destroy calls destructor of TestObj": () => {
-.   int size = 1;
-.   TestObj* init_val = NULL;
-.   TestObjArray* arr = TestObjArray_Create(size, init_val);
-.
-.   int test_int = 42;
-.   TestObj* test_obj = TestObj_Create(&test_int);
-.
-.   TestObjArray_Set(arr, 0, test_obj);
-.   // Since we're refcounting, we need to destroy this first
-.   TestObj_Destroy(&test_obj);
-.   TestObjArray_Destroy(&arr);
-.   // If we correctly destroyed the TestObj in the destructor, 
-.   // this int should be set to 0
-.   assert(test_int == 0);
-  }, 
-  "TestObjArray_Set increments refcount": () => {
-.   int size = 1;
-.   TestObj* init_val = NULL;
-.   TestObjArray* arr = TestObjArray_Create(size, init_val);
-.
-.   int test_int = 42;
-.   TestObj* test_obj = TestObj_Create(&test_int);
-.
-.   TestObjArray_Set(arr, 0, test_obj);
-.   TestObjArray_Destroy(&arr);
-.   // Refcount should be non-zero so this shouldn't have been affected
-.   assert(test_int == 42);
-.
-.   TestObj_Destroy(&test_obj);
-  },
-}
-
-defineType({name: TestObjArray.name, ctype: TestObjArray.name})
-defineClass(TestObjArray)
 ```
 
 Instead of having a boolean parameter we could also just have a global variable
 'cl' or something that we can use to check if a given type is a class. We could
-also just have separate PrimitiveArray and ObjectArray metaclasses.
+also just have separate PrimitiveArray and ObjectArray templates.
 
 # Closing thoughts
 
