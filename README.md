@@ -68,7 +68,6 @@ $ ribosome cgen.js.dna
 And then to run the code:
 ```bash
 $ make
-gcc -g -Werror -o build/HelloWorld src/HelloWorld.c
 $ ./build/HelloWorld
 Hello, world!
 Bonjour, world!
