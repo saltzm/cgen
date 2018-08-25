@@ -678,13 +678,7 @@ defineMetatype({
 .           free(self->data);
           }
         },
-        GetSize: {
-          inp: {},
-          out: t.Size,
-          def: () => {
-.           return self->size;
-          }
-        },
+        /* ... */
         Get: {
           inp: { idx: t.Size },
           out: ElementType, 
@@ -693,14 +687,7 @@ defineMetatype({
 .           return self->data[idx];
           }
         },
-        Set: {
-          inp: { idx: t.Size, val: ElementType },
-          out: t.Nothing, 
-          def: () => {
-.           assert(idx < self->size);
-.           self->data[idx] = val;
-          }
-        }
+        /* ... */
       },
       // We can't really define tests in the Array metaclass since we don't know 
       // necessarily how to e.g. initialize elements without knowing what their
