@@ -115,7 +115,18 @@ So, I ditched it, but continued writing things for fun in C on the side, with th
 
 But then, I came across [ribosome](http://sustrik.github.io/ribosome/), another code generator written by the main author of ZeroMQ, Martin Sustrik. I used it for something small at work and it turned out to be a pleasure to use. Another year passed, I thought about it again, used it again, and then I was off to the races with cgen. My goal was to allow model-oriented programming to be mixed in with ordinary C code in the same file format, so that looking at the generated source code would be largely unnecessary. As a bonus, it was a natural extension to equip it with the ability to generate a Makefile (or whatever build tool I chose) from the same format.
 
-# Core Concepts
+# Future work
+* Improving Makefile generation or switching to another build tool
+* Better integration with external projects
+* Building up a library of models and utilities
+* Experimenting with alternate file formats
+* Porting cgen to use the ruby version of ribosome (for ruby enthusiasts)
+
+# Tutorial
+
+This tutorial runs through the core concepts of cgen and then through a series of examples. All of the below examples can be found in full in the [examples](https://www.github.com/saltzm/cgen/examples) directory.
+
+## Core Concepts
 
 From the perspective of cgen, a C program can be divided into a few key components, each of which can be described by a JSON object. The following list describes each component and its corresponding properties:
 * **module**: Describes a .h/.c file pair. Used for code and makefile generation.
@@ -183,7 +194,21 @@ From the perspective of cgen, a C program can be divided into a few key componen
   * **visibility**: 'public'/'private'
   * **value**: The value of the constant.
 
-# Tutorial
+## Running cgen 
+
+See the [quick start](#quick-start) for instructions on running cgen. That's all there is to it.
+
+## cgen Project Structure
+
+cgen is very lightweight and doesn't require much to get it up and running. But it's helpful to know a few concepts and conventions.
+
+First, the `package.js.dna` file is used to tell cgen which files should be included in the project. The order matters, so if a file requires something defined in another file, be sure to order them correctly.
+
+Next, I use the convention of using the `.cdna` extension with camel-case for files containing definitions of things that will get turned into C code, and `.js.dna` with snake-case for files containing code for taking models and generating C code. 
+
+Once your project is set up with all of your `.cdna` and `.js.dna` files listed in `package.js.dna`, several things happen when you run cgen. First, directories called `src` and `build` are created if they don't exist. Then a header and implementation file for each module is created in `src`, and a makefile with targets to build everything is created in the root directory of the project. Executables have the same name as their module and are placed in the `build` directory. The makefile generation currently is pretty rudimentary and needs a lot of work, but it works for the things I've used it for.
+
+## Examples
 
 In order to fully understand everything, it would be helpful to read or at
 least skim the [ribosome](http://sustrik.github.io/ribosome/) documentation. If
@@ -191,9 +216,7 @@ you don't feel like doing that right now, just know that lines preceded with a
 dot ('.') get sent to a file, with macros being JavaScript variables or
 functions surrounded by '@{}' that get inserted in-line.
 
-All of the below examples can be found in full in the [examples](https://www.github.com/saltzm/cgen/examples) directory.
-
-## Using the lowest level interface
+### Using the lowest level interface
 
 Here's an example of the use of the raw interface (spoiler alert: we can make this less verbose later) to implement a basic array class for integers:
 
@@ -314,7 +337,7 @@ defineFunction({
 })
 ```
 
-## Defining an executable
+### Defining an executable
 
 Let's add a test executable for our IntArray class:
 ```c
@@ -366,7 +389,7 @@ defineFunction({
 })
 ```
 
-## Getting fancy with macros
+### Getting fancy with macros
 
 But what if we got FANCY!? Let's play with macros. The way ribosome works is
 that you can define a JavaScript function that contains in its body lines
@@ -433,19 +456,7 @@ defineFunction({
 })
 ```
 
-## Running cgen
-
-See the [quick start](#quick-start) for instructions on running cgen. This section describes the project structure a bit more.
-
-First, the `package.js.dna` file is used to tell cgen which files should be included in the project. The order matters, so if a file requires something defined in another file, be sure to order them correctly.
-
-Next, I use the convention of using the `.cdna` extension with camel-case for files containing definitions of things that will get turned into C code, and `.js.dna` with snake-case for files containing code for taking models and generating C code. 
-
-With all of your `.cdna` and `.js.dna` files listed in `package.js.dna`, what happens when you run cgen?
-
-First, directories called `src` and `build` are created if they don't exist. Then a header and implementation file for each module is created in `src`, and a makefile with targets to build everything is created in the root directory of the project. Executables have the same name as their module and are placed in the `build` directory. The makefile generation currently is pretty rudimentary and needs a lot of work, but it works for the things I've used it for.
-
-## Building a class abstraction
+### Building a class abstraction
 
 The beauty of having a program represented as a bunch of JSON objects is that it's really easy to build higher and higher level abstractions. For example, it's easy to recreate the above IntArray class in the following (less verbose) way:
 
@@ -541,7 +552,7 @@ defineClass({
 
 This generates the files IntArray.h/c, IntArrayTest.h/c, and a makefile with a target for building all modules and a target for running the tests (`make test`).
 
-## Getting more opinionated with our class design
+### Getting more opinionated with our class design
 
 The above example (and the corresponding examples in examples/class_interface) gives a good example of a basic class abstraction. However, there are a few more things that we could make our class abstraction do for us. 
 
@@ -701,7 +712,7 @@ IntArray_IncRefCount(IntArray*  self) {
 }
 ```
 
-## Generic containers
+### Generic containers
 
 "But wait! How can we implement containers that are GENERIC?! Surely it must be nigh
 IMPOSSIBLE!"
@@ -961,12 +972,5 @@ What I find really cool is that to build the raw interface took only about 200 l
 If I wanted to implement a way to enforce inheriting interfaces described by a JSON object (I don't, yet), it would probably only be an additional 50 lines or so. Inheritance of fields in a struct, or actual function definitions? Easy. Enforcing a consistent style across files in general becomes much easier.
 
 Another nice thing is that if you don't like writing raw JSON like this, it's fairly easy to create your own file format (or use an existing format like YAML) and convert it to JSON before running the generator. Building extra tooling around it shouldn't be difficult either.
-
-# Future work
-* Improving Makefile generation or switching to another build tool
-* Better integration with external projects
-* Building up a library of models and utilities
-* Experimenting with alternate file formats
-* Porting cgen to use the ruby version of ribosome (for ruby enthusiasts)
 
 
