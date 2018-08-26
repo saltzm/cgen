@@ -854,7 +854,7 @@ defineMetatype({
 .           for (size_t i = 0; i < self->size; ++i) {
 .             // While it would be silly to pass in a pointer to an existing
 .             // object as the initial value, we'll pass it to the Set path
-.             // to make sure the refcount is incremeneted enough times
+.             // to make sure the refcount is incremented enough times
 .             @{ElementArray}_Set(self, i, init_value);
 .           }
           }
