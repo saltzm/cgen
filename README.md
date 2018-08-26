@@ -97,7 +97,7 @@ int main() {
 }
 ```
 
-If you're unconvinced that this is useful, or concerned that this is too verbose, check out 
+If you're unconvinced that this is useful or concerned that this is too verbose, check out 
 [an example of using cgen to write classes in C](#getting-more-opinionated-with-our-class-design) for a more powerful example.
 
 # Motivation
@@ -565,7 +565,7 @@ Second, we have to include a pointer to self as the first input parameter of eve
 
 There's also some things in the constructor that we'll need to do for every class we write - allocate memory for the object itself, assert that exists, and return self. Similarly for the destructor. 
 
-And, while we're add it, what if we want every object of all of our classes to have a reference count, and then have the destructor decrement the refcount before freeing memory, and then define a function IncRefCount to increment the refcount? Let's do it. 
+And, while we're at it, what if we want every object of all of our classes to have a reference count, and then have the destructor decrement the refcount before freeing memory, and then define a function IncRefCount to increment the refcount? Let's do it. 
 
 This is the result: 
 
