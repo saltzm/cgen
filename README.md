@@ -738,7 +738,7 @@ anywhere, much as you would in C++. Check it out:
 ```c
 defineMetatype({
   name: "Array", 
-  def: function(T, elements_are_objects = false) { 
+  def: function(T) { 
     // The name of the class that will be generated from this template
     var ElementArray = capitalize(T) + "Array"
     var ElementType = T
