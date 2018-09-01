@@ -53,8 +53,6 @@ defineType = function(obj) {
     // The uniqueness check is a little different for types since it's the only
     // thing where the full JSON obj isn't stored as the value in the map
     if (t.hasOwnProperty(obj.name)) {
-      console.log(obj.ctype)
-      console.log(t[obj.name])
       assert(obj.ctype == t[obj.name], 
           "Cannot redefine type '" + obj.name + "'")
     }
@@ -235,15 +233,35 @@ Object.entries(modules).forEach(([module_name, props]) => {
     }
 })
 
+
+// Recursively find all dependencies for an executable
+findAllDependencies = function(project_deps) {
+  var all_deps = []
+  var frontier = project_deps
+  
+  while (frontier.length != 0) {
+    var next = frontier.pop()
+    all_deps.push(next)
+
+    modules[next].project_deps.forEach((dep) => {
+      if (!all_deps.includes(dep) && !project_deps.includes(dep)) {
+        frontier.push(dep)
+      }
+    })
+  }
+  return all_deps
+}
+
 Object.entries(modules).forEach(([module_name, props]) => {
 .
     if (props.executable) {
 .@{module_name}: 
-        props.project_deps.forEach(function(dep) {
+      var all_deps = findAllDependencies(props.project_deps)
+        all_deps.forEach(function(dep) {
 ./+ @{dep}.o
         });
 .    @{compileCommand} -o build/@{module_name} src/@{module_name}.c
-        props.project_deps.forEach(function(dep) {
+        all_deps.forEach(function(dep) {
 ./+ build/@{dep}.o
         });
     } else {
