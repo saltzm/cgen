@@ -8,6 +8,9 @@ var assert = function (cond, message) {
 
 var t = {}
 var mt = {}
+// TODO separate public from private enums
+var enums = {}
+var e = { }
 var struct = {} 
 // TODO separate public from private funcs
 var func = {}
@@ -68,6 +71,15 @@ defineMetatype = function(obj) {
     mt[obj.name] = obj.def
 }
 
+defineEnum = function(obj) {
+    var required_fields = ["name", "module", "visibility", "values"]
+    assertObjHasRequiredFields(obj, "enum", required_fields)
+    assertObjIsUnique(enums, "enum", obj.name, obj)
+
+    enums[obj.name] = obj
+    e[obj.name] = "enum " + obj.name
+}
+
 defineFunction = function(obj) {
     var required_fields = ["name", "module", "visibility", "inp", "out", "def"]
     assertObjHasRequiredFields(obj, "function", required_fields)
@@ -93,6 +105,15 @@ defineEntryPoint = function(obj) {
 }
 
 ./!include("package.js.dna")
+
+var writeEnumToOutput = function(enum_obj) {
+.enum
+.@{enum_obj.name} {
+  Object.entries(enum_obj.values).forEach(([name, val]) => {
+.  @{name} = @{val},
+  })
+.};
+}
 
 var writeStructToOutput = function(struct_obj) {
 .struct 
@@ -159,9 +180,26 @@ Object.entries(modules).forEach(([module_name, props]) => {
 .#include "@{module_name}.h"
 .
     props.external_deps.forEach(function(other_module) {
-.#include "@{other_module}.h"
+.#include <@{other_module}.h>
     })
 .
+})
+
+Object.entries(enums).forEach(([enum_name, enum_obj]) => {
+    var header_file = "src/" + enum_obj.module + ".h"
+    var class_file = "src/" + enum_obj.module + ".c"
+
+// Write struct typedef to header
+./!append(header_file)
+.
+    if (enum_obj.visibility == "public") {
+.@{writeEnumToOutput(enum_obj)}
+    }
+    if (enum_obj.visibility == "private") {
+// Write struct definition to .c file
+./!append(class_file)
+.@{writeEnumToOutput(enum_obj)}
+    }
 })
 
 Object.entries(struct).forEach(([struct_name, struct_obj]) => {
@@ -182,8 +220,10 @@ Object.entries(struct).forEach(([struct_name, struct_obj]) => {
 // Write struct definition to .c file
 ./!append(class_file)
 .@{writeStructToOutput(struct_obj)}
+.
     }
 })
+
 
 Object.entries(func).forEach(([func_name, func_obj]) => {
     var header_file = "src/" + func_obj.module + ".h"
@@ -223,7 +263,7 @@ Object.entries(main).forEach(([func_name, entry_point_obj]) => {
 
 ./!tabsize(4)
 
-var compileCommand = "gcc -g -Werror"
+var compileCommand = "gcc -g -Werror -Wall"
 
 // Create target to make all executables
 .all:
@@ -264,7 +304,15 @@ Object.entries(modules).forEach(([module_name, props]) => {
         all_deps.forEach(function(dep) {
 ./+ build/@{dep}.o
         });
+        props.external_libs.forEach(function(dep) {
+./+ -l@{dep}
+        });
+
+
+
+
     } else {
+
 .@{module_name}.o:
         props.project_deps.forEach(function(dep) {
 ./+ @{dep}.o
