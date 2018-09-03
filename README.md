@@ -145,7 +145,7 @@ From the perspective of cgen, a C program can be divided into a few key componen
     implemented, i.e. this file will be #included but will not add the
     appropriate "-I" flag to the compiler command if it's necessary.)
   * **external\_libs**: The names of other libraries that need to be linked into
-    this module. (Not yet implemented.)
+    this module.
 * **function**: Declares/defines a function
   * **name**: The full name of the function
   * **module**: The module the function belongs to
