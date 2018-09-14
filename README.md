@@ -2,7 +2,7 @@
 # What is cgen?
 At its simplest, cgen is a tool that lets you write C code mixed with metaprogramming in JavaScript.
 
-At its finest, cgen is a tool that lets you build higher and higher level abstractions for code generation to help you write C code with less and less effort.
+At its best, cgen is a tool that lets you build higher and higher level abstractions for code generation to help you write C code with less and less effort.
 
 Core features:
 * C with metaprogramming in JavaScript
@@ -116,7 +116,7 @@ cgen is designed for people who appreciate the simplicity of C as a language, bu
 * Generate serialization code for structs automatically
 * Define a state machine using JavaScript, automatically defining the necessary enums and structs for states, events, and messages
 
-Beyond constructs that generate C code directly, it's also easy to add arbitrary JavaScript code to do other things, like text your boss every time you run cgen. (Okay, there's probably a more practical example, like generating documentation, but that's less fun.) 
+Beyond constructs that generate C code directly, it's also easy to add arbitrary JavaScript code to do other things, like text your boss every time you run cgen. (Okay, there's probably a more practical example, like generating documentation or running a protobuf compiler, but that's less fun.) 
 
 This paradigm is extremely powerful, and I'm excited to see where it leads.
 
@@ -143,6 +143,9 @@ But then, I came across [ribosome](http://sustrik.github.io/ribosome/), another 
 * Better integration with external projects
 * Building up a library of models and utilities
 * Experimenting with alternate file formats
+* Polishing rough edges around the basic API, like allowing different compiler directives for header files and .c files, making sure transitive linking dependencies work with external dependencies, etc.
+* Create tooling, e.g. vim plugins
+* Make sure all generator errors are easy to diagnose. (They aren't bad as is.)
 * Porting cgen to use the ruby version of ribosome (for ruby enthusiasts)
 
 # Tutorial
