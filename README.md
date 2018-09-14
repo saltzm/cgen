@@ -2,7 +2,12 @@
 # What is cgen?
 At its simplest, cgen is a tool that lets you write C code mixed with metaprogramming in JavaScript.
 
-At its finest, cgen is a tool that lets you build higher and higher level abstractions for code generation to help you write C code with less and less effort. 
+At its finest, cgen is a tool that lets you build higher and higher level abstractions for code generation to help you write C code with less and less effort.
+
+Core features:
+* C with metaprogramming in JavaScript
+* Automated #includes and makefile generation from a single dependency list for .h/.c file pairs
+* Extreme extensibility
 
 [Jump to examples](#tutorial)
 
@@ -18,7 +23,7 @@ $ cd cgen_hello_world
 $ wget https://raw.githubusercontent.com/saltzm/cgen/master/cgen.js.dna 
 ```
 
-Create a file called `HelloWorld.cdna` in the `cgen\_hello\_world` directory you
+Create a file called `HelloWorld.cdna` in the `cgen_hello_world` directory you
 just created and copy and paste the following:
 ```c
 defineModule({
@@ -100,12 +105,26 @@ int main() {
 If you're unconvinced that this is useful or concerned that this is too verbose, check out 
 [an example of using cgen to write classes in C](#getting-more-opinionated-with-our-class-design) for a more powerful example.
 
-# Motivation
+# Use Case
+
+cgen is designed for people who appreciate the simplicity of C as a language, but who want an easy way to implement higher level abstractions that would be difficult to implement with macros alone. Using JavaScript as a metaprogramming language for C leads to a flexibility that's hard to match. Examples of abstractions you could build (some of which are in examples):
+* [Classes](#building-a-class-abstraction)
+* [Generic containers](#generic-containers)
+* [Adding a reference count to all classes](#getting-more-opinionated-with-our-class-design)
+* Enforce adherence of classes to an interface
+* Generate serialization code for structs automatically
+* Define a state machine using JavaScript, automatically defining the necessary enums and structs for states, events, and messages
+
+Beyond constructs that generate C code directly, it's also easy to add arbitrary JavaScript code to do other things, like text your boss every time you run cgen. (Okay, there's probably a more practical example, like generating documentation, but that's less fun.) 
+
+This paradigm is extremely powerful, and I'm excited to see where it leads.
+
+# Personal Motivation
 C++ template metaprogramming is Turing complete... But would you ever really want to write a whole program in it?
 
-I've been writing almost exclusively in C++ for work since 2015. Even after having read several books about C++ best practices, API design, design patterns, and so on, I still bump into parts of the language from time to time that leave me scratching my head, rummaging through StackOverflow, and asking coworkers for help. (In the latest case, I was trying and failing to pass a move-only type into a lambda capture for a lambda being passed as a function parameter. Turns out it doesn't work with the standard library - you need something like [unique_function](https://naios.github.io/function2/).) 
+I've been writing almost exclusively in C++ for work since 2015. Even after having read several books about C++ best practices, API design, design patterns, and so on, I still bump into parts of the language from time to time that leave me scratching my head and rummaging through StackOverflow. (In the latest case, I was trying and failing to pass a move-only type into a lambda capture for a lambda being passed as a function parameter. Turns out it doesn't work with the standard library - you need something like [unique_function](https://naios.github.io/function2/).) Needless to say, this can be frustrating at times.
 
-About a year and a half ago I was reading through the [ZeroMQ docs](http://zguide.zeromq.org/page:all) for fun (they're a good read, actually, written by Pieter Hintjens, one of the contributors), and came across this tidbit:
+The seed of inspiration for this project was planted in my brain about a year and a half ago when I was reading through the [ZeroMQ docs](http://zguide.zeromq.org/page:all) for fun (they're a good read, actually, written by Pieter Hintjens, one of the contributors), and came across this tidbit:
 >... my preferred language for systems programming is C (upgraded to C99, with a constructor/destructor API model and generic containers). There are two reasons I like this modernized C language. First, **I'm too weak-minded to learn a big language like C++. Life just seems filled with more interesting things to understand.** Second, I find that this specific level of manual control lets me produce better results, faster.
 
 This quote, in addition to the section on [code generation](http://zguide.zeromq.org/page:all#Code-Generation), inspired me and led me down a rabbit hole to the iMatix projects [gsl (the code generation tool described in the ZeroMQ docs)](https://github.com/imatix/gsl), [zproject](https://github.com/zeromq/zproject) and [zproto](https://github.com/zeromq/zproto). 
