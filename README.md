@@ -21,7 +21,7 @@ To get started with cgen, first install the JavaScript version of [ribosome](htt
 ```bash
 $ mkdir cgen_hello_world
 $ cd cgen_hello_world
-$ wget https://raw.githubusercontent.com/saltzm/cgen/master/cgen.js.dna 
+$ curl https://raw.githubusercontent.com/saltzm/cgen/master/cgen.js.dna -o cgen.js.dna
 ```
 
 Create a file called `HelloWorld.cdna` in the `cgen_hello_world` directory you
