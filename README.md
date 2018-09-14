@@ -67,8 +67,8 @@ And create a file called `package.js.dna` in the same directory with the followi
 
 To generate the C code and Makefile, run the following command (assuming an alias 'ribosome' to run 'node ribosome.js' from wherever it's located):
 ```bash
-$ # Assuming an alias 'ribosome' to run 'node ribosome.js' from wherever it's located
-$ ribosome cgen.js.dna
+$ # Assuming you've downloaded ribosome.js to this directory
+$ node ribosome.js cgen.js.dna
 ```
 
 And then to run the code:
