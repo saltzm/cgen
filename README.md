@@ -7,6 +7,7 @@ At its finest, cgen is a tool that lets you build higher and higher level abstra
 Core features:
 * C with metaprogramming in JavaScript
 * Automated #includes and makefile generation from a single dependency list for .h/.c file pairs
+* Ability to integrate with third-party C libraries
 * Extreme extensibility
 
 [Jump to examples](#tutorial)
