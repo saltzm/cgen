@@ -161,7 +161,7 @@ From the perspective of cgen, a C program can be divided into a few key componen
     module (for now) and wil automatically add the necessary linking dependencies to the
     Makefile for the module.
   * **external\_deps**: The names of other header files that should be included from
-    projects not written in the cgen format. (Makefile integration not yet
+    projects not written in the cgen format. (Makefile integration not fully
     implemented, i.e. this file will be #included but will not add the
     appropriate "-I" flag to the compiler command if it's necessary.)
   * **external\_libs**: The names of other libraries that need to be linked into
